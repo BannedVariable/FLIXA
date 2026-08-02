@@ -1,0 +1,2764 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Stream free, openly licensed films without an account."
+    />
+    <title>FLIXA — Free Streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+    <meta name="theme-color" content="#080808" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="FLIXA Remote" />
+    <link
+      rel="manifest"
+      href="data:application/manifest+json,%7B%22name%22%3A%22FLIXA%20Cloud%20Remote%22%2C%22short_name%22%3A%22FLIXA%20Remote%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23080808%22%2C%22theme_color%22%3A%22%23080808%22%7D"
+    />
+  <style>
+    /* Custom scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.6) 0%, rgba(239, 68, 68, 0.4) 100%);
+      border-radius: 6px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.9) 0%, rgba(239, 68, 68, 0.7) 100%);
+      background-clip: padding-box;
+    }
+
+    /* Firefox scrollbar */
+    * {
+      scrollbar-color: rgba(239, 68, 68, 0.6) transparent;
+      scrollbar-width: thin;
+    }
+
+    *:hover {
+      scrollbar-color: rgba(239, 68, 68, 0.8) transparent;
+    }
+
+    /* Skeleton loading animation */
+    @keyframes skeleton-shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+      background-size: 1000px 100%;
+      animation: skeleton-shimmer 2s infinite;
+    }
+
+    .skeleton-fade-out {
+      animation: fadeOut 0.5s ease-out forwards;
+    }
+
+    /* Hide scrollbar in modals while keeping scroll functionality */
+    .max-h-\[90vh\]::-webkit-scrollbar {
+      display: none;
+    }
+
+    .max-h-\[90vh\] {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Remote control focus indicator */
+    .remote-focused {
+      outline: 3px solid #ef4444 !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
+    }
+
+    button.remote-focused,
+    a.remote-focused,
+    .movie-card.remote-focused {
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+  </style>
+
+  <body
+    class="min-h-screen overflow-x-hidden bg-[#080808] font-sans text-white antialiased selection:bg-red-500 selection:text-white"
+  >
+    <!-- SAVED SHOWS SIDEBAR -->
+    <aside
+      id="savedShowsSidebar"
+      class="fixed inset-y-0 right-0 z-30 w-80 transform translate-x-full transition-transform duration-300 border-l border-white/10 bg-gradient-to-b from-black/30 via-black/20 to-black/10 backdrop-blur-2xl overflow-y-auto shadow-2xl shadow-black/50 rounded-l-3xl"
+    >
+      <div class="sticky top-0 border-b border-white/10 bg-gradient-to-b from-black/40 to-black/20 backdrop-blur-xl px-5 py-5 rounded-tl-3xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Saved Shows</h2>
+            <p class="mt-1 text-xs text-white/40">Your watchlist</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              id="sidebarMenuButton"
+              class="grid size-9 place-items-center rounded-full bg-white/10 text-white/60 hover:bg-white/15 hover:text-white transition"
+              aria-label="Sidebar menu"
+            >
+              <iconify-icon
+                icon="solar:settings-linear"
+                width="20"
+                height="20"
+                style="stroke-width: 1.5"
+              ></iconify-icon>
+            </button>
+            <button
+              id="closeSidebar"
+              class="grid size-9 place-items-center rounded-full bg-white/10 text-white/60 hover:bg-white/15 hover:text-white transition"
+              aria-label="Close sidebar"
+            >
+              <iconify-icon
+                icon="solar:close-circle-linear"
+                width="22"
+                height="22"
+              ></iconify-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-5 space-y-3">
+        <div id="savedShowsList" class="space-y-2">
+          <div class="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-8 text-center">
+            <iconify-icon
+              icon="solar:bookmark-linear"
+              width="32"
+              height="32"
+              class="mx-auto text-white/20 mb-2"
+            ></iconify-icon>
+            <p class="text-sm text-white/40">No saved shows yet</p>
+            <p class="text-xs text-white/30 mt-1">Click the bookmark icon to save</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- SIDEBAR OVERLAY -->
+    <div
+      id="sidebarOverlay"
+      class="fixed inset-0 z-20 hidden bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+    ></div>
+
+    <!-- MAIN CONTENT WRAPPER for push effect -->
+    <div id="mainContentWrapper" class="transition-all duration-300">
+      <header
+        id="siteHeader"
+        class="fixed inset-x-0 top-0 z-40 transition-all duration-300 border-b border-transparent"
+      >
+        <div
+          class="mx-auto flex h-16 max-w-[1600px] items-center gap-5 px-4 sm:h-20 sm:px-6 lg:px-10"
+        >
+          <a
+            href="#"
+            class="shrink-0 text-xl font-semibold tracking-[-0.08em] text-red-500 sm:text-2xl"
+            aria-label="Flixa home"
+          >
+            FLIXA
+          </a>
+
+          <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            <button
+              id="searchButton"
+              class="grid size-10 place-items-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
+              aria-label="Search"
+            >
+              <iconify-icon
+                icon="solar:magnifer-linear"
+                width="22"
+                height="22"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+            </button>
+
+            <button
+              id="sidebarToggle"
+              class="grid size-10 place-items-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
+              aria-label="Toggle saved shows"
+            >
+              <iconify-icon
+                icon="solar:list-linear"
+                width="22"
+                height="22"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+            </button>
+
+            <button
+              id="cloudRemoteButton"
+              class="hidden items-center gap-2 rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-100 backdrop-blur-md transition hover:bg-red-500/20 sm:flex"
+              aria-label="Open cloud remote pairing"
+            >
+              <iconify-icon
+                icon="solar:smartphone-2-linear"
+                width="18"
+                height="18"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+              <span class="hidden lg:inline">Cloud Remote</span>
+            </button>
+            <button
+              id="infoButton"
+              class="hidden items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80 backdrop-blur-md transition hover:bg-white/10 sm:flex"
+            >
+              <iconify-icon
+                icon="solar:info-circle-linear"
+                width="18"
+                height="18"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+              Free &amp; legal
+            </button>
+
+            <button
+              id="supportButton"
+              class="hidden items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-sm text-blue-100 backdrop-blur-md transition hover:bg-blue-500/20 sm:flex"
+              aria-label="Support Banned Variable"
+            >
+              <iconify-icon
+                icon="solar:heart-linear"
+                width="18"
+                height="18"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+              <span class="hidden lg:inline">Support</span>
+            </button>
+
+            <button
+              id="mobileMenuButton"
+              class="grid size-10 place-items-center rounded-full text-white/80 transition hover:bg-white/10 md:hidden"
+              aria-label="Open menu"
+            >
+              <iconify-icon
+                icon="solar:hamburger-menu-linear"
+                width="24"
+                height="24"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+            </button>
+          </div>
+        </div>
+
+        <nav
+          id="mobileMenu"
+          class="hidden border-t border-white/10 bg-black/95 px-5 py-5 text-sm backdrop-blur-xl md:hidden"
+        >
+        </nav>
+      </header>
+
+      <section
+        id="home"
+        class="relative min-h-[82vh] overflow-hidden sm:min-h-screen"
+      >
+        <img
+          src="https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg"
+          alt="Cinematic backdrop from a popular movie"
+          class="absolute inset-0 h-full w-full scale-105 object-cover object-center saturate-125 transition-transform duration-[10s] ease-out"
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/5"
+        ></div>
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-black/30"
+        ></div>
+        <div
+          class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_38%,rgba(239,68,68,0.12),transparent_30%)]"
+        ></div>
+
+        <div
+          class="relative mx-auto flex min-h-[82vh] max-w-[1600px] items-end px-4 pb-24 pt-28 sm:min-h-screen sm:items-center sm:px-6 sm:pb-32 lg:px-10"
+        >
+          <div class="max-w-2xl">
+            <div class="mb-5 flex items-center gap-3">
+              <span
+                class="rounded-md bg-red-500 px-2 py-1 text-xs font-semibold uppercase tracking-widest"
+              >
+                Free streaming
+              </span>
+              <span class="text-sm text-white/70">Openly licensed catalog</span>
+            </div>
+
+            <p
+              class="mb-2 text-sm font-medium uppercase tracking-[0.28rem] text-white/60"
+            >
+              No account required
+            </p>
+            <h1
+              class="max-w-xl text-5xl font-semibold tracking-tight text-white sm:text-7xl lg:text-8xl"
+            >
+              Watch free. Stay curious.
+            </h1>
+
+            <p
+              class="mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base sm:leading-7"
+            >
+              Explore free and openly licensed films without subscriptions,
+              payments, or placeholder titles.
+            </p>
+
+            <div class="mt-7 flex flex-wrap gap-3">
+              <button
+                class="play-button inline-flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-700 sm:text-base"
+                data-title="Cosmos"
+                data-video="https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4"
+              >
+                <iconify-icon
+                  icon="solar:play-bold"
+                  width="22"
+                  height="22"
+                ></iconify-icon>
+                Play
+              </button>
+
+              <button
+                id="heroListButton"
+                class="inline-flex items-center gap-2 rounded-lg bg-white/15 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/25 sm:text-base"
+              >
+                <iconify-icon
+                  id="heroListIcon"
+                  icon="solar:add-circle-linear"
+                  width="22"
+                  height="22"
+                  style="stroke-width:1.5"
+                ></iconify-icon>
+                <span id="heroListText">My List</span>
+              </button>
+            </div>
+
+            <p class="mt-5 flex items-center gap-2 text-xs text-white/45">
+              <iconify-icon
+                icon="solar:shield-check-linear"
+                width="17"
+                height="17"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+              No account, subscription, or payment required
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="relative z-10 -mt-14 space-y-12 pb-20 sm:-mt-24">
+        <div id="trending" class="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
+          <div class="mb-6 flex items-end justify-between">
+            <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
+              Trending
+            </h2>
+            <button
+              class="scroll-button grid size-9 place-items-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
+              data-row="trendingRow"
+              aria-label="Scroll right"
+            >
+              <iconify-icon
+                icon="solar:alt-arrow-right-linear"
+                width="20"
+                height="20"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+            </button>
+          </div>
+
+          <!-- Content Type Tabs -->
+          <div class="mb-6 flex gap-2 border-b border-white/10">
+            <button
+              id="trendingMoviesTab"
+              class="tab-button active px-4 py-3 text-sm font-medium text-white border-b-2 border-red-500 transition"
+              data-type="movie"
+            >
+              Movies
+            </button>
+            <button
+              id="trendingTvTab"
+              class="tab-button px-4 py-3 text-sm font-medium text-white/60 border-b-2 border-transparent transition hover:text-white"
+              data-type="tv"
+            >
+              TV Shows
+            </button>
+          </div>
+
+          <div
+            id="trendingRow"
+            class="flex snap-x gap-3 overflow-x-auto pb-3 [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden transition-opacity duration-300"
+          >
+            <div
+              class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50"
+            >
+              No titles have been added yet.
+            </div>
+          </div>
+        </div>
+
+        <div id="movies" class="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
+          <div class="mb-6 flex items-end justify-between">
+            <div>
+              <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
+                Popular Content
+              </h2>
+            </div>
+            <button
+              class="scroll-button grid size-9 place-items-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
+              data-row="movieRow"
+              aria-label="Scroll right"
+            >
+              <iconify-icon
+                icon="solar:alt-arrow-right-linear"
+                width="20"
+                height="20"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+            </button>
+          </div>
+
+          <!-- Content Type Tabs -->
+          <div class="mb-6 flex gap-2 border-b border-white/10">
+            <button
+              id="moviesMoviesTab"
+              class="tab-button active px-4 py-3 text-sm font-medium text-white border-b-2 border-red-500 transition"
+              data-type="movie"
+            >
+              Movies
+            </button>
+            <button
+              id="moviesTvTab"
+              class="tab-button px-4 py-3 text-sm font-medium text-white/60 border-b-2 border-transparent transition hover:text-white"
+              data-type="tv"
+            >
+              TV Shows
+            </button>
+          </div>
+
+          <div
+            id="movieRow"
+            class="flex snap-x gap-3 overflow-x-auto pb-3 [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden transition-opacity duration-300"
+          >
+            <div
+              class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50"
+            >
+              The catalog is currently empty.
+            </div>
+          </div>
+
+          <p
+            id="noResults"
+            class="mt-8 hidden rounded-xl border border-white/10 bg-white/5 p-8 text-center text-sm text-white/60"
+          >
+            No titles match your search.
+          </p>
+        </div>
+
+        <div
+          id="cloud-remote"
+          class="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10"
+        >
+          <div
+            class="relative overflow-hidden rounded-2xl border border-red-400/15 bg-[#111] p-6 sm:p-10"
+          >
+            <div
+              class="pointer-events-none absolute -right-24 -top-32 size-80 rounded-full bg-red-500/15 blur-3xl"
+            ></div>
+            <div
+              class="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center"
+            >
+              <div class="max-w-2xl">
+                <span
+                  class="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-200"
+                >
+                  <span class="relative flex size-2">
+                    <span
+                      class="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75"
+                    ></span>
+                    <span
+                      class="relative inline-flex size-2 rounded-full bg-red-500"
+                    ></span>
+                  </span>
+                  Cloud connected
+                </span>
+                <h2
+                  class="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl"
+                >
+                  Your phone is now the remote
+                </h2>
+                <p
+                  class="mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-base sm:leading-7"
+                >
+                  Pair any phone in seconds. Control playback, volume, and
+                  browsing from a clean installable web app—no account or
+                  download required.
+                </p>
+              </div>
+              <button
+                id="pairRemoteButton"
+                class="inline-flex shrink-0 items-center gap-3 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-black shadow-xl transition hover:bg-white/85"
+              >
+                <iconify-icon
+                  icon="solar:smartphone-2-linear"
+                  width="21"
+                  height="21"
+                ></iconify-icon>
+                Pair a remote
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-white/10">
+      <div
+        class="mx-auto grid max-w-[1600px] gap-8 px-4 py-10 sm:px-6 md:grid-cols-2 lg:px-10"
+      >
+        <div>
+          <div class="text-lg font-semibold tracking-[-0.08em] text-red-500">
+            FLIXA
+          </div>
+          <p class="mt-3 max-w-md text-xs leading-5 text-white/40">
+            A no-account interface for films you have permission to stream.
+            Verify licensing before publishing third-party media.
+          </p>
+        </div>
+        <div
+          class="flex flex-wrap gap-x-6 gap-y-3 text-xs text-white/45 md:justify-end"
+        >
+          <button class="hover:text-white transition info-btn" data-info="about">About</button>
+          <button class="hover:text-white transition info-btn" data-info="licensing">Licensing</button>
+          <button class="hover:text-white transition info-btn" data-info="privacy">Privacy</button>
+          <button class="hover:text-white transition info-btn" data-info="help">Help</button>
+        </div>
+      </div>
+    </footer>
+    </div><!-- End mainContentWrapper -->
+
+    <div
+      id="remotePairModal"
+      class="fixed inset-0 z-[80] items-center justify-center bg-black/85 p-4 backdrop-blur-xl hidden"
+    >
+      <div
+        class="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151515] p-6 shadow-2xl sm:p-8"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p
+              class="text-xs font-medium uppercase tracking-widest text-red-400"
+            >
+              FLIXA Cloud Remote
+            </p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight">
+              Scan to take control
+            </h2>
+          </div>
+          <button
+            id="closeRemotePair"
+            class="grid size-9 place-items-center rounded-full bg-white/10 text-white/60 hover:text-white"
+            aria-label="Close remote pairing"
+          >
+            <iconify-icon
+              icon="solar:close-circle-linear"
+              width="21"
+              height="21"
+            ></iconify-icon>
+          </button>
+        </div>
+        <div class="mt-6 grid gap-6 sm:grid-cols-[180px_1fr] sm:items-center">
+          <div
+            class="grid aspect-square place-items-center overflow-hidden rounded-2xl bg-white p-3"
+          >
+            <div
+              id="remoteQrLoading"
+              class="text-center text-xs font-medium text-black/50"
+            >
+              Creating secure link…
+            </div>
+            <img
+              id="remoteQrCode"
+              class="hidden size-full"
+              alt="QR code for the FLIXA cloud remote"
+            />
+          </div>
+          <div>
+            <div
+              id="remotePairStatus"
+              class="flex items-center gap-2 text-sm text-white/70"
+            >
+              <span
+                class="size-2 animate-pulse rounded-full bg-amber-400"
+              ></span>
+              Starting cloud session…
+            </div>
+            <p class="mt-3 text-xs leading-5 text-white/45">
+              Open your camera and scan the code. The remote works in your
+              browser and can be added to your home screen.
+            </p>
+            <button
+              id="copyRemoteLink"
+              class="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+              disabled=""
+            >
+              <iconify-icon
+                icon="solar:link-linear"
+                width="16"
+                height="16"
+              ></iconify-icon>
+              Copy pairing link
+            </button>
+          </div>
+        </div>
+        <div
+          class="mt-6 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-xs text-white/40"
+        >
+          <span class="text-white/65">Private by design:</span>
+          controls travel over an encrypted peer connection and the pairing code
+          expires with this tab.
+        </div>
+      </div>
+    </div>
+    <div
+      id="remoteController"
+      class="fixed inset-0 z-[100] hidden flex-col bg-[#080808] text-white"
+    >
+      <div
+        class="flex items-center justify-between border-b border-white/10 px-5 py-4"
+      >
+        <div>
+          <div class="text-lg font-semibold tracking-[-0.08em] text-red-500">
+            FLIXA
+          </div>
+          <p id="remoteConnectionStatus" class="mt-1 text-xs text-white/40">
+            Connecting to screen…
+          </p>
+        </div>
+        <button
+          id="installRemoteButton"
+          class="hidden rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70"
+        >
+          Install app
+        </button>
+      </div>
+      <div class="flex flex-1 flex-col items-center justify-center p-6">
+        <div class="mb-10 text-center">
+          <p class="text-xs uppercase tracking-[0.25em] text-white/35">
+            Cloud remote
+          </p>
+          <h1 class="mt-3 text-2xl font-semibold tracking-tight">
+            FLIXA Screen
+          </h1>
+        </div>
+        <div class="grid grid-cols-3 items-center gap-5">
+          <button
+            data-remote-command="seekBack"
+            class="grid size-16 place-items-center rounded-full bg-white/10 text-white active:scale-95"
+            aria-label="Rewind 10 seconds"
+          >
+            <iconify-icon
+              icon="solar:rewind-10-seconds-back-linear"
+              width="27"
+              height="27"
+            ></iconify-icon>
+          </button>
+          <button
+            data-remote-command="playPause"
+            class="grid size-24 place-items-center rounded-full bg-white text-black shadow-2xl shadow-red-500/10 active:scale-95"
+            aria-label="Play or pause"
+          >
+            <iconify-icon
+              icon="solar:play-bold"
+              width="35"
+              height="35"
+            ></iconify-icon>
+          </button>
+          <button
+            data-remote-command="seekForward"
+            class="grid size-16 place-items-center rounded-full bg-white/10 text-white active:scale-95"
+            aria-label="Forward 10 seconds"
+          >
+            <iconify-icon
+              icon="solar:rewind-10-seconds-forward-linear"
+              width="27"
+              height="27"
+            ></iconify-icon>
+          </button>
+        </div>
+        <div class="mt-12 flex gap-4">
+          <button
+            data-remote-command="mute"
+            class="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm active:scale-95"
+          >
+            <iconify-icon
+              icon="solar:volume-loud-linear"
+              width="20"
+              height="20"
+            ></iconify-icon>
+            Mute
+          </button>
+          <button
+            data-remote-command="browse"
+            class="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm active:scale-95"
+          >
+            <iconify-icon
+              icon="solar:clapperboard-open-play-linear"
+              width="20"
+              height="20"
+            ></iconify-icon>
+            Browse
+          </button>
+        </div>
+        <p class="mt-12 max-w-xs text-center text-xs leading-5 text-white/35">
+          Keep this page open while using the remote. Add it to your home screen
+          for an app-like experience.
+        </p>
+      </div>
+    </div>
+    <div
+      id="searchPanel"
+      class="fixed inset-0 z-50 hidden bg-gradient-to-b from-black/95 via-black/90 to-black/95 p-4 backdrop-blur-xl sm:p-8 overflow-y-auto"
+    >
+      <div class="mx-auto max-w-6xl pt-20">
+        <!-- Search Input -->
+        <div
+          class="flex items-center gap-3 rounded-2xl border-2 border-red-500/60 bg-gradient-to-r from-red-500/15 via-black/40 to-black/50 p-4 shadow-2xl shadow-red-500/30 mb-8 backdrop-blur-lg transition hover:border-red-500/80 hover:shadow-red-500/40"
+        >
+          <iconify-icon
+            icon="solar:magnifer-linear"
+            width="24"
+            height="24"
+            class="ml-2 text-red-400"
+            style="stroke-width:1.5"
+          ></iconify-icon>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Search free movies and shows..."
+            class="min-w-0 flex-1 bg-transparent py-3 text-lg text-white outline-none placeholder:text-white/40 focus:placeholder:text-white/30"
+          />
+          <button
+            id="closeSearch"
+            class="grid size-10 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition"
+            aria-label="Close search"
+          >
+            <iconify-icon
+              icon="solar:close-circle-linear"
+              width="22"
+              height="22"
+              style="stroke-width:1.5"
+            ></iconify-icon>
+          </button>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div class="col-span-full text-center py-12 text-white/40">
+            Start typing to search...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="videoModal"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/95 p-3 sm:p-8"
+    >
+      <div
+        class="w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-[#111] shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5"
+        >
+          <div>
+            <p class="text-xs text-white/40">Now playing</p>
+            <h2 id="videoTitle" class="mt-0.5 text-sm font-medium">Title</h2>
+          </div>
+          <button
+            id="closeVideo"
+            class="grid size-10 place-items-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/15 hover:text-white"
+            aria-label="Close player"
+          >
+            <iconify-icon
+              icon="solar:close-circle-linear"
+              width="23"
+              height="23"
+              style="stroke-width:1.5"
+            ></iconify-icon>
+          </button>
+        </div>
+        <video
+          id="videoPlayer"
+          class="aspect-video w-full bg-black"
+          controls=""
+          playsinline=""
+        ></video>
+      </div>
+    </div>
+
+    <div
+      id="infoModal"
+      class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/80 p-4 backdrop-blur-lg"
+    >
+      <div
+        class="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151515] p-6 shadow-2xl sm:p-8"
+      >
+        <div class="grid size-12 place-items-center rounded-xl bg-emerald-400/10 text-emerald-300">
+          <iconify-icon
+            icon="solar:shield-check-linear"
+            width="25"
+            height="25"
+            style="stroke-width:1.5"
+          ></iconify-icon>
+        </div>
+        <h2 class="mt-6 text-2xl font-semibold tracking-tight">
+          Keep the catalog legal
+        </h2>
+        <p class="mt-3 text-sm leading-6 text-white/60">
+          Use public-domain films, openly licensed projects, your own media, or
+          content you have explicit distribution rights for. Free access does
+          not remove copyright requirements.
+        </p>
+        <button
+          id="understoodButton"
+          class="mt-6 w-full rounded-lg bg-white py-3 text-sm font-semibold text-black hover:bg-white/80"
+        >
+          Understood
+        </button>
+      </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script type="module">
+      import {
+        getTrending,
+        getPopularMovies,
+        search,
+        addToRecentlyWatched,
+        updateRecentlyWatchedTimestamp,
+        config,
+        getReviews,
+        addReview
+      } from './backend/index.js';
+      import RemoteController from './backend/utils/remote.js';
+
+      const header = document.getElementById('siteHeader');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const mobileMenuButton = document.getElementById('mobileMenuButton');
+      const searchPanel = document.getElementById('searchPanel');
+      const searchButton = document.getElementById('searchButton');
+      const closeSearch = document.getElementById('closeSearch');
+      const searchInput = document.getElementById('searchInput');
+      const noResults = document.getElementById('noResults');
+      const videoModal = document.getElementById('videoModal');
+      const videoPlayer = document.getElementById('videoPlayer');
+      const videoTitle = document.getElementById('videoTitle');
+      const closeVideo = document.getElementById('closeVideo');
+      const infoModal = document.getElementById('infoModal');
+      const infoButton = document.getElementById('infoButton');
+      const closeInfo = document.getElementById('closeInfo');
+      const understoodButton = document.getElementById('understoodButton');
+      const supportButton = document.getElementById('supportButton');
+      const heroListButton = document.getElementById('heroListButton');
+      const heroListIcon = document.getElementById('heroListIcon');
+      const heroListText = document.getElementById('heroListText');
+      const trendingRow = document.getElementById('trendingRow');
+      const movieRow = document.getElementById('movieRow');
+      const documentariesRow = document.getElementById('documentaries');
+      
+      let movieCards = [];
+      let currentVideoData = null;
+      let heroIndex = 0;
+      let heroItems = [];
+      let heroRotationInterval = null;
+      let currentHeroMovie = null; // Track current hero movie
+      let currentHeroType = 'movie';
+      let currentTrendingType = 'movie';
+      let trendingCache = { movie: [], tv: [] };
+      let savedShows = [];
+
+      const heroSection = document.getElementById('home');
+      const heroImg = heroSection.querySelector('img');
+      const heroTagline = heroSection.querySelector('p.mb-2');
+      const heroTitle = heroSection.querySelector('h1');
+      const heroDescription = heroSection.querySelector('p[class*="mt-5 max-w"]');
+      const heroType = heroSection.querySelector('span.text-sm.text-white\\/70');
+      const playHeroBtn = heroSection.querySelector('.play-button');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const closeSidebar = document.getElementById('closeSidebar');
+      const savedShowsSidebar = document.getElementById('savedShowsSidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const savedShowsList = document.getElementById('savedShowsList');
+      const trendingMoviesTab = document.getElementById('trendingMoviesTab');
+      const trendingTvTab = document.getElementById('trendingTvTab');
+      const moviesMoviesTab = document.getElementById('moviesMoviesTab');
+      const moviesTvTab = document.getElementById('moviesTvTab');
+      const mainContentWrapper = document.getElementById('mainContentWrapper');
+
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('bg-black/90', window.scrollY > 20);
+        header.classList.toggle('backdrop-blur-xl', window.scrollY > 20);
+        header.classList.toggle('border-b', window.scrollY > 20);
+        header.classList.toggle('border-white/10', window.scrollY > 20);
+      });
+
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      document.querySelectorAll('#mobileMenu a').forEach(link => {
+        link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+      });
+
+      function openSearchPanel() {
+        searchPanel.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        setTimeout(() => searchInput.focus(), 50);
+      }
+
+      function closeSearchPanel() {
+        searchPanel.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        searchInput.value = '';
+        document.getElementById('searchResults').innerHTML = '<div class="col-span-full text-center py-12 text-white/40">Start typing to search...</div>';
+      }
+
+      // Update hero section with new content
+      function updateHeroContent(item, type = 'movie') {
+        if (!item.poster_path && !item.backdrop_path) return;
+
+        const backdropUrl = item.backdrop_path 
+          ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
+          : item.poster_path
+          ? `https://image.tmdb.org/t/p/w1280${item.poster_path}`
+          : 'https://via.placeholder.com/1280x720?text=No+Image';
+
+        heroImg.src = backdropUrl;
+        heroImg.alt = item.title || item.name || 'Movie backdrop';
+        
+        heroTitle.textContent = item.title || item.name || 'Unknown';
+        heroDescription.textContent = item.overview || 'No description available';
+        heroType.textContent = type === 'tv' ? 'TV Show' : 'Movie';
+        
+        const year = (item.release_date || item.first_air_date || '').split('-')[0];
+        heroTagline.textContent = year ? `From ${year}` : 'New Content';
+
+        // Store current hero movie for My List button
+        currentHeroMovie = item;
+        currentHeroType = type;
+
+        // Update play button data
+        playHeroBtn.dataset.title = item.title || item.name;
+        playHeroBtn.onclick = () => playMovie(item, type);
+        
+        // Reset saved state since hero changed
+        updateSavedState();
+      }
+
+      // Rotate hero content every 5 seconds
+      function startHeroRotation() {
+        if (heroRotationInterval) clearInterval(heroRotationInterval);
+        if (heroItems.length === 0) return;
+
+        heroRotationInterval = setInterval(() => {
+          heroIndex = (heroIndex + 1) % heroItems.length;
+          const item = heroItems[heroIndex];
+          updateHeroContent(item.item, item.type);
+        }, 5000);
+      }
+
+      // Load hero rotation data
+      async function loadHeroRotation() {
+        try {
+          const [trending, popular] = await Promise.all([
+            getTrending('movie', 'week'),
+            getPopularMovies()
+          ]);
+
+          heroItems = [];
+          
+          if (trending?.results?.length > 0) {
+            trending.results.slice(0, 6).forEach(movie => {
+              if (movie.backdrop_path || movie.poster_path) {
+                heroItems.push({ item: movie, type: 'movie' });
+              }
+            });
+          }
+
+          if (popular?.results?.length > 0) {
+            popular.results.slice(0, 6).forEach(movie => {
+              if (movie.backdrop_path || movie.poster_path) {
+                heroItems.push({ item: movie, type: 'movie' });
+              }
+            });
+          }
+
+          if (heroItems.length > 0) {
+            updateHeroContent(heroItems[0].item, heroItems[0].type);
+            startHeroRotation();
+          }
+        } catch (error) {
+          console.error('Error loading hero rotation:', error);
+        }
+      }
+
+      // Sidebar functions
+      function openSidebar() {
+        savedShowsSidebar.classList.remove('translate-x-full');
+        savedShowsSidebar.classList.add('translate-x-0');
+        mainContentWrapper.classList.add('mr-80');
+        sidebarOverlay.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        sidebarToggle.classList.add('text-red-500');
+        document.getElementById('siteHeader').classList.add('opacity-0', 'pointer-events-none');
+      }
+
+      function closeSidebarPanel() {
+        savedShowsSidebar.classList.remove('translate-x-0');
+        savedShowsSidebar.classList.add('translate-x-full');
+        mainContentWrapper.classList.remove('mr-80');
+        sidebarOverlay.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        sidebarToggle.classList.remove('text-red-500');
+        document.getElementById('siteHeader').classList.remove('opacity-0', 'pointer-events-none');
+      }
+
+      function loadSavedShows() {
+        savedShows = JSON.parse(localStorage.getItem('flixa-saved-shows') || '[]');
+        renderSavedShows();
+      }
+
+      function renderSavedShows() {
+        if (savedShows.length === 0) {
+          savedShowsList.innerHTML = `
+            <div class="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-8 text-center">
+              <iconify-icon
+                icon="solar:bookmark-linear"
+                width="32"
+                height="32"
+                class="mx-auto text-white/20 mb-2"
+              ></iconify-icon>
+              <p class="text-sm text-white/40">No saved shows yet</p>
+              <p class="text-xs text-white/30 mt-1">Click the bookmark icon to save</p>
+            </div>
+          `;
+          return;
+        }
+
+        savedShowsList.innerHTML = '';
+        savedShows.forEach((show, index) => {
+          const item = document.createElement('div');
+          item.className = 'relative rounded-2xl border-2 border-white/10 bg-white/[0.03] hover:bg-white/[0.08] p-4 transition cursor-pointer hover:border-white/20 saved-show-item';
+          item.dataset.showId = show.id;
+          item.dataset.showType = show.type;
+          item.innerHTML = `
+            <div class="flex gap-4 items-start">
+              <div class="relative flex-shrink-0 group">
+                ${show.poster ? `<img src="${show.poster}" alt="${show.title}" class="w-14 h-20 object-cover rounded-xl border border-white/10 shadow-lg" />` : '<div class="w-14 h-20 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center"><iconify-icon icon="solar:clapperboard-open-play-linear" width="24" height="24" class="text-white/20"></iconify-icon></div>'}
+                <button class="play-saved absolute inset-0 grid place-items-center rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition backdrop-blur-sm" aria-label="Play">
+                  <iconify-icon icon="solar:play-bold" width="20" height="20" class="text-red-500"></iconify-icon>
+                </button>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate text-white">${show.title}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs px-2 py-1 rounded-lg bg-white/10 text-white/70 capitalize">${show.type}</span>
+                </div>
+              </div>
+              <div class="checkbox-indicator hidden flex-shrink-0">
+                <iconify-icon icon="solar:check-circle-bold" width="24" height="24" class="text-red-500"></iconify-icon>
+              </div>
+            </div>
+          `;
+          
+          const playBtn = item.querySelector('.play-saved');
+          playBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            // Fetch full movie data before playing
+            try {
+              const response = await fetch(`https://api.themoviedb.org/3/${show.type}/${show.id}?api_key=d1007bf32c19224b866b56f63c3bd4a4`);
+              const fullData = await response.json();
+              playMovie(fullData, show.type);
+            } catch (error) {
+              console.error('Error fetching movie data:', error);
+              playMovie(show, show.type);
+            }
+          });
+          
+          savedShowsList.appendChild(item);
+        });
+        
+        setupShowSelection();
+      }
+
+      // Context menu for saved shows - multi-select with red outline
+      let currentContextMenu = null;
+      let selectedShows = new Set(); // Track multiple selected shows
+      
+      function showSidebarContextMenu(event) {
+        // If no shows or no selections, don't show menu
+        if (savedShows.length === 0 || selectedShows.size === 0) return;
+
+        // Remove any existing context menu
+        if (currentContextMenu) {
+          currentContextMenu.remove();
+        }
+
+        const menu = document.createElement('div');
+        menu.className = 'fixed z-[60] bg-[#1a1a1a] border border-red-500/40 rounded-xl shadow-2xl min-w-[200px] overflow-hidden';
+        menu.innerHTML = `
+          <button class="w-full px-4 py-3 flex items-center gap-3 text-sm text-red-400 hover:bg-red-500/10 transition text-left delete-option">
+            <iconify-icon icon="solar:trash-bin-trash-linear" width="18" height="18"></iconify-icon>
+            <span>Delete ${selectedShows.size > 1 ? `(${selectedShows.size})` : ''}</span>
+          </button>
+        `;
+
+        // Position menu to the left of sidebar (outside sidebar)
+        const sidebar = document.getElementById('savedShowsSidebar');
+        const rect = sidebar.getBoundingClientRect();
+        
+        menu.style.top = '100px';
+        menu.style.right = (window.innerWidth - rect.left + 20) + 'px';
+        
+        document.body.appendChild(menu);
+        currentContextMenu = menu;
+
+        // Delete handler
+        menu.querySelector('.delete-option').addEventListener('click', () => {
+          deleteSelectedShows();
+          if (currentContextMenu) currentContextMenu.remove();
+          currentContextMenu = null;
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', closeSidebarContextMenu);
+      }
+
+      function closeSidebarContextMenu(e) {
+        if (!e.target.closest('#sidebarMenuButton') && !e.target.closest('button') && currentContextMenu) {
+          currentContextMenu.remove();
+          currentContextMenu = null;
+          document.removeEventListener('click', closeSidebarContextMenu);
+        }
+      }
+
+      function deleteSelectedShows() {
+        selectedShows.forEach(showId => {
+          const index = savedShows.findIndex(s => s.id == showId);
+          if (index !== -1) {
+            const show = savedShows[index];
+            savedShows.splice(index, 1);
+          }
+        });
+        localStorage.setItem('flixa-saved-shows', JSON.stringify(savedShows));
+        selectedShows.clear();
+        renderSavedShows();
+      }
+
+      function showWatchPrompt(show, server, season = null, episode = null) {
+        // Create confirmation modal
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-[99] flex items-center justify-center bg-black/80 p-4 backdrop-blur-lg';
+        
+        // Build embed URL based on server selection
+        let embedUrl;
+        if (server === 'vidsrc') {
+          embedUrl = show.type === 'tv' 
+            ? `https://vidsrc.me/embed/tv/${show.id}/${season}/${episode}`
+            : `https://vidsrc.me/embed/movie/${show.id}`;
+        } else if (server === 'upstream') {
+          embedUrl = show.type === 'tv'
+            ? `https://upstream.to/embed/series/${show.id}-${season}-${episode}`
+            : `https://upstream.to/embed/movie/${show.id}`;
+        } else {
+          embedUrl = show.type === 'tv' 
+            ? `https://www.2embed.cc/embedtv/${show.id}?s=${season}&e=${episode}`
+            : `https://www.2embed.cc/embed/${show.id}`;
+        }
+        
+        modal.innerHTML = `
+          <div class="w-full max-w-5xl rounded-3xl border-2 border-red-500 bg-black overflow-hidden shadow-2xl shadow-red-500/50">
+            <!-- Close Button -->
+            <div class="absolute top-4 right-4 z-10">
+              <button class="grid size-10 place-items-center rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition close-watch-modal border border-white/10">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Server Badge -->
+            <div class="absolute top-4 left-4 z-10">
+              <span class="inline-flex items-center gap-2 rounded-full border border-red-500/60 bg-red-500/20 px-4 py-1.5 text-xs font-semibold text-red-200">
+                <span class="relative flex size-2">
+                  <span class="absolute inline-flex size-full animate-pulse rounded-full bg-red-400 opacity-75"></span>
+                  <span class="relative inline-flex size-2 rounded-full bg-red-500"></span>
+                </span>
+                ${server.toUpperCase()}
+              </span>
+            </div>
+            
+            <!-- Preview Player -->
+            <div class="aspect-video bg-black">
+              <iframe src="${embedUrl}" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        modal.querySelector('.close-watch-modal').addEventListener('click', () => {
+          modal.remove();
+        });
+
+        // Close on outside click or Escape key
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.remove();
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') modal.remove();
+        });
+      }
+
+      // Add sidebar menu button handler
+      function attachSidebarMenuHandler() {
+        const menuBtn = document.getElementById('sidebarMenuButton');
+        if (menuBtn) {
+          menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showSidebarContextMenu(e);
+          });
+        }
+      }
+
+      // Add click handlers for selecting shows
+      function setupShowSelection() {
+        document.querySelectorAll('.saved-show-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            // Don't select if clicking the play button
+            if (e.target.closest('.play-saved')) return;
+            
+            const showId = item.dataset.showId;
+            
+            // Toggle selection
+            if (selectedShows.has(showId)) {
+              selectedShows.delete(showId);
+              item.classList.remove('border-red-500', 'bg-red-500/10');
+              item.classList.add('border-white/10');
+              item.querySelector('.checkbox-indicator').classList.add('hidden');
+            } else {
+              selectedShows.add(showId);
+              item.classList.remove('border-white/10');
+              item.classList.add('border-red-500', 'bg-red-500/10');
+              item.querySelector('.checkbox-indicator').classList.remove('hidden');
+            }
+          });
+        });
+      }
+
+      window.removeSavedShow = function(id, type) {
+        savedShows = savedShows.filter(s => !(s.id === id && s.type === type));
+        localStorage.setItem('flixa-saved-shows', JSON.stringify(savedShows));
+        renderSavedShows();
+      };
+
+      function addToSavedShows(movie, type) {
+        const exists = savedShows.some(s => s.id === movie.id && s.type === type);
+        if (!exists) {
+          savedShows.push({
+            id: movie.id,
+            type: type,
+            title: movie.title || movie.name,
+            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null
+          });
+          localStorage.setItem('flixa-saved-shows', JSON.stringify(savedShows));
+          renderSavedShows();
+          showNotification(`Added "${movie.title || movie.name}" to My List`, 'success');
+        } else {
+          savedShows = savedShows.filter(s => !(s.id === movie.id && s.type === type));
+          localStorage.setItem('flixa-saved-shows', JSON.stringify(savedShows));
+          renderSavedShows();
+          showNotification(`Removed from My List`, 'success');
+        }
+      }
+
+      // Tab switching for trending
+      async function switchTrendingTab(type) {
+        currentTrendingType = type;
+        
+        // Update tab styling
+        trendingMoviesTab.classList.toggle('border-red-500', type === 'movie');
+        trendingMoviesTab.classList.toggle('border-transparent', type !== 'movie');
+        trendingTvTab.classList.toggle('border-red-500', type === 'tv');
+        trendingTvTab.classList.toggle('border-transparent', type !== 'tv');
+        
+        trendingMoviesTab.classList.toggle('text-white', type === 'movie');
+        trendingMoviesTab.classList.toggle('text-white/60', type !== 'movie');
+        trendingTvTab.classList.toggle('text-white', type === 'tv');
+        trendingTvTab.classList.toggle('text-white/60', type !== 'tv');
+
+        // Fade out and load new content
+        trendingRow.classList.add('opacity-0');
+
+        setTimeout(() => {
+          trendingRow.innerHTML = '';
+          const items = trendingCache[type];
+          
+          if (items.length === 0) {
+            trendingRow.innerHTML = '<div class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50">No content available</div>';
+          } else {
+            items.slice(0, 10).forEach((item, index) => {
+              if (item.poster_path) {
+                trendingRow.appendChild(createTrendingCard(item, index, type));
+              }
+            });
+          }
+
+          // Fade in
+          trendingRow.classList.remove('opacity-0');
+        }, 300);
+      }
+      function createMovieCard(movie, type = 'movie') {
+        const article = document.createElement('article');
+        article.className = 'movie-card group relative w-40 shrink-0 snap-start sm:w-52 rounded-2xl overflow-hidden';
+        article.dataset.name = movie.title || movie.name || 'Unknown';
+        article.dataset.id = movie.id;
+        article.dataset.type = type;
+
+        const posterUrl = movie.poster_path 
+          ? `https://image.tmdb.org/t/p/w342${movie.poster_path}` 
+          : 'https://via.placeholder.com/342x513?text=No+Poster';
+
+        article.innerHTML = `
+          <div class="relative overflow-hidden rounded-2xl bg-white/5">
+            <img src="${posterUrl}" alt="${article.dataset.name}" class="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-105 rounded-2xl" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
+            <button class="play-button absolute bottom-3 right-3 grid size-10 place-items-center rounded-full bg-red-600 text-white shadow-xl transition hover:scale-105 hover:bg-red-700 opacity-0 group-hover:opacity-100" aria-label="Play">
+              <iconify-icon icon="solar:play-bold" width="19" height="19"></iconify-icon>
+            </button>
+            <button class="save-button absolute bottom-3 left-3 grid size-10 place-items-center rounded-full bg-white/20 text-white opacity-0 shadow-xl transition group-hover:opacity-100 hover:bg-red-500" aria-label="Save">
+              <iconify-icon icon="solar:bookmark-linear" width="19" height="19"></iconify-icon>
+            </button>
+          </div>
+          <h3 class="mt-3 font-medium">${article.dataset.name}</h3>
+          <p class="mt-1 text-xs text-white/45">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} · ${type === 'tv' ? 'TV Show' : 'Movie'}</p>
+        `;
+
+        article.querySelector('.play-button').addEventListener('click', () => {
+          playMovie(movie, type);
+        });
+
+        const saveBtn = article.querySelector('.save-button');
+        saveBtn.addEventListener('click', () => {
+          const isSaved = savedShows.some(s => s.id === movie.id && s.type === type);
+          if (isSaved) {
+            savedShows = savedShows.filter(s => !(s.id === movie.id && s.type === type));
+            saveBtn.classList.add('opacity-50');
+            showNotification(`Removed from My List`, 'success');
+          } else {
+            savedShows.push({ id: movie.id, type, title: movie.title || movie.name, poster: posterUrl });
+            saveBtn.classList.remove('opacity-50');
+            showNotification(`Added "${movie.title || movie.name}" to My List`, 'success');
+          }
+          localStorage.setItem('flixa-saved-shows', JSON.stringify(savedShows));
+          renderSavedShows();
+          updateSavedState();
+        });
+
+        return article;
+      }
+
+      // Create trending card element
+      function createTrendingCard(movie, index, type = 'movie') {
+        const article = document.createElement('article');
+        article.className = 'movie-card group relative w-[72vw] max-w-[290px] shrink-0 snap-start overflow-hidden rounded-2xl bg-[#141414]';
+        article.dataset.name = movie.title || movie.name || 'Unknown';
+        article.dataset.id = movie.id;
+        article.dataset.type = type;
+
+        const posterUrl = movie.poster_path 
+          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+          : 'https://via.placeholder.com/500x280?text=No+Poster';
+
+        const dateField = type === 'tv' ? movie.first_air_date : movie.release_date;
+        const year = dateField ? dateField.split('-')[0] : 'N/A';
+
+        article.innerHTML = `
+          <img src="${posterUrl}" alt="${article.dataset.name}" class="aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-105 rounded-2xl" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent rounded-2xl"></div>
+          <div class="absolute inset-x-0 bottom-0 p-4">
+            <p class="mb-1 text-xs font-medium text-red-400">#${index + 1} Trending</p>
+            <h3 class="font-semibold tracking-tight">${article.dataset.name}</h3>
+            <p class="mt-1 text-xs text-white/55">${type === 'tv' ? 'TV Show' : 'Movie'} · ${year}</p>
+            <button class="play-button absolute bottom-4 right-4 grid size-10 place-items-center rounded-full bg-red-600 text-white opacity-0 shadow-xl transition group-hover:opacity-100 hover:bg-red-700" aria-label="Play">
+              <iconify-icon icon="solar:play-bold" width="19" height="19"></iconify-icon>
+            </button>
+            <button class="save-button absolute bottom-4 left-4 grid size-10 place-items-center rounded-full bg-white/20 text-white opacity-0 shadow-xl transition group-hover:opacity-100 hover:bg-red-500" aria-label="Save">
+              <iconify-icon icon="solar:bookmark-linear" width="19" height="19"></iconify-icon>
+            </button>
+          </div>
+        `;
+
+        article.querySelector('.play-button').addEventListener('click', () => {
+          playMovie(movie, type);
+        });
+
+        article.querySelector('.save-button').addEventListener('click', (e) => {
+          e.stopPropagation();
+          addToSavedShows(movie, type);
+        });
+
+        return article;
+      }
+
+      // Play video function - shows detailed modal first
+      window.playMovie = function(movie, type) {
+        showMovieDetailsModal(movie, type);
+      };
+
+      // Show detailed movie/show modal with info and options
+      async function showMovieDetailsModal(movie, type) {
+        try {
+          // Fetch additional details from TMDB
+          const details = await fetch(`https://api.themoviedb.org/3/${type}/${movie.id}?api_key=d1007bf32c19224b866b56f63c3bd4a4&append_to_response=external_ids`).then(r => r.json());
+          
+          const backdropUrl = movie.backdrop_path 
+            ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
+            : movie.poster_path
+            ? `https://image.tmdb.org/t/p/w780${movie.poster_path}`
+            : 'https://via.placeholder.com/1280x720';
+
+          const posterUrl = movie.poster_path 
+            ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+            : 'https://via.placeholder.com/342x513';
+
+          const tmdbRating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+          const releaseDate = type === 'tv' ? movie.first_air_date : movie.release_date;
+          const year = releaseDate ? releaseDate.split('-')[0] : 'N/A';
+          
+          const modal = document.createElement('div');
+          modal.className = 'fixed inset-0 z-[95] flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto';
+          modal.innerHTML = `
+            <div class="w-full max-w-4xl rounded-3xl border-2 border-red-500/60 bg-gradient-to-b from-black/70 via-black/60 to-black/50 backdrop-blur-xl shadow-2xl shadow-red-500/20 pb-8 max-h-[90vh] overflow-y-auto">
+              <!-- Header with backdrop -->
+              <div class="relative h-48 sm:h-64 rounded-3xl overflow-hidden">
+                <img src="${backdropUrl}" alt="${movie.title || movie.name}" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80"></div>
+                <button class="absolute top-4 right-4 grid size-10 place-items-center rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition close-modal-btn border border-white/10">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Content -->
+              <div class="px-6 sm:px-8">
+                <!-- Title and Meta -->
+                <div class="flex gap-6 -mt-24 mb-8 relative z-10">
+                  <img src="${posterUrl}" alt="${movie.title || movie.name}" class="w-32 h-48 sm:w-40 sm:h-56 object-cover rounded-2xl border-2 border-red-500/60 shadow-2xl shadow-red-500/20 flex-shrink-0">
+                  
+                  <div class="flex-1 pt-8">
+                    <h1 class="text-2xl sm:text-4xl font-bold text-white mb-1">${movie.title || movie.name}</h1>
+                    <p class="text-sm text-white/50 mb-4">${movie.tagline || ''}</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                      <span class="px-3 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-200 text-xs font-semibold">${type === 'tv' ? 'TV Series' : 'Movie'}</span>
+                      <span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white/70 text-xs">${year}</span>
+                      ${movie.runtime ? `<span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white/70 text-xs">${movie.runtime} min</span>` : ''}
+                      ${details.genres && details.genres.length > 0 ? `<span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white/70 text-xs">${details.genres.map(g => g.name).join(', ')}</span>` : ''}
+                    </div>
+
+                    <!-- Ratings -->
+                    <div class="flex flex-wrap gap-6">
+                      <div class="flex items-center gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400" style="display: flex; align-items: center; justify-content: center;">
+                          <polygon points="12 2 15.09 10.26 23.77 10.26 17.44 15.74 19.53 24 12 18.52 4.47 24 6.56 15.74 0.23 10.26 8.91 10.26"/>
+                        </svg>
+                        <div>
+                          <p class="text-xs text-white/50">TMDB Score</p>
+                          <p class="text-sm font-semibold text-white">${tmdbRating}/10</p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-red-500">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                        </svg>
+                        <div>
+                          <p class="text-xs text-white/50">Rotten Tomatoes</p>
+                          <p class="text-sm font-semibold text-white">-</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Overview -->
+                <div class="mb-8">
+                  <h3 class="text-sm font-semibold text-white/80 mb-2">Synopsis</h3>
+                  <p class="text-white/70 text-sm leading-6">${movie.overview || 'No description available'}</p>
+                </div>
+
+                <!-- Additional Info Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 p-4 rounded-xl bg-white/5 border border-white/10">
+                  ${details.status ? `
+                    <div>
+                      <p class="text-xs text-white/50 mb-1">Status</p>
+                      <p class="text-sm font-semibold text-white">${details.status}</p>
+                    </div>
+                  ` : ''}
+                  ${details.number_of_episodes ? `
+                    <div>
+                      <p class="text-xs text-white/50 mb-1">Episodes</p>
+                      <p class="text-sm font-semibold text-white">${details.number_of_episodes}</p>
+                    </div>
+                  ` : ''}
+                  ${details.number_of_seasons ? `
+                    <div>
+                      <p class="text-xs text-white/50 mb-1">Seasons</p>
+                      <p class="text-sm font-semibold text-white">${details.number_of_seasons}</p>
+                    </div>
+                  ` : ''}
+                  ${details.budget && details.budget > 0 ? `
+                    <div>
+                      <p class="text-xs text-white/50 mb-1">Budget</p>
+                      <p class="text-sm font-semibold text-white">$${(details.budget / 1000000).toFixed(1)}M</p>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Server Selection -->
+                <div class="mb-6">
+                  <label class="block text-sm font-semibold text-white mb-3">Select Server</label>
+                  <div class="server-list flex gap-3">
+                    <button class="server-btn active flex-1 px-4 py-3 rounded-2xl bg-gradient-to-br from-red-500/30 to-red-600/20 border-2 border-red-500/60 text-red-100 font-semibold transition hover:from-red-500/40 hover:to-red-600/30 shadow-lg shadow-red-500/30 flex items-center justify-center gap-2 min-w-0" data-server="2embed">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-red-300 flex-shrink-0">
+                        <polygon points="5 3 19 12 5 21"></polygon>
+                      </svg>
+                      <span class="hidden sm:inline">2embed</span>
+                    </button>
+                    <button class="server-btn flex-1 px-4 py-3 rounded-2xl bg-white/10 border-2 border-white/20 text-white/70 font-semibold transition hover:bg-white/15 hover:border-white/30 flex items-center justify-center gap-2 min-w-0" data-server="vidsrc">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-white/50 flex-shrink-0">
+                        <polygon points="5 3 19 12 5 21"></polygon>
+                      </svg>
+                      <span class="hidden sm:inline">VidSrc</span>
+                    </button>
+                    <button class="server-btn flex-1 px-4 py-3 rounded-2xl bg-white/10 border-2 border-white/20 text-white/70 font-semibold transition hover:bg-white/15 hover:border-white/30 flex items-center justify-center gap-2 min-w-0" data-server="upstream">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-white/50 flex-shrink-0">
+                        <polygon points="5 3 19 12 5 21"></polygon>
+                      </svg>
+                      <span class="hidden sm:inline">Upstream</span>
+                    </button>
+                  </div>
+                </div>
+
+                ${type === 'tv' ? `
+                  <!-- Season and Episode Selection for TV Shows -->
+                  <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label class="block text-sm font-semibold text-white mb-2">Season</label>
+                      <div class="relative custom-select">
+                        <button class="season-select-btn w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-left flex items-center justify-between hover:bg-white/15 transition">
+                          <span class="season-select-text">Season 1</span>
+                          <iconify-icon icon="solar:chevron-down-linear" width="18" height="18" class="text-white/50"></iconify-icon>
+                        </button>
+                        <div class="season-select-dropdown hidden absolute top-full left-0 right-0 mt-2 bg-[#1a1a1a] border border-white/20 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto">
+                          <!-- Seasons will be populated by JavaScript -->
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-semibold text-white mb-2">Episode</label>
+                      <div class="relative custom-select">
+                        <button class="episode-select-btn w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-left flex items-center justify-between hover:bg-white/15 transition">
+                          <span class="episode-select-text">Episode 1</span>
+                          <iconify-icon icon="solar:chevron-down-linear" width="18" height="18" class="text-white/50"></iconify-icon>
+                        </button>
+                        <div class="episode-select-dropdown hidden absolute top-full left-0 right-0 mt-2 bg-[#1a1a1a] border border-white/20 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto">
+                          <!-- Episodes will be populated by JavaScript -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
+
+                <!-- Watch Button -->
+                <button class="watch-now-btn w-full px-6 py-3 rounded-lg bg-red-500 text-white font-semibold text-lg transition hover:bg-red-600 active:scale-95 flex items-center justify-center gap-2 border border-red-400/30 shadow-lg hover:shadow-red-500/50">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21"></polygon>
+                  </svg>
+                  Watch Now
+                </button>
+              </div>
+            </div>
+          `;
+
+          document.body.appendChild(modal);
+
+          // Close button handler
+          modal.querySelector('.close-modal-btn').addEventListener('click', () => {
+            modal.remove();
+          });
+
+          // Watch button handler
+          modal.querySelector('.watch-now-btn').addEventListener('click', () => {
+            const server = modal.querySelector('.server-btn.active').dataset.server;
+            let season = null, episode = null;
+            
+            if (type === 'tv') {
+              season = modal.querySelector('.season-select-btn').dataset.value || '1';
+              episode = modal.querySelector('.episode-select-btn').dataset.value || '1';
+            }
+            
+            showWatchPrompt({ id: movie.id, type, title: movie.title || movie.name, poster: posterUrl }, server, season, episode);
+            modal.remove();
+          });
+
+          // Custom dropdown handlers for TV shows
+          if (type === 'tv') {
+            const seasonBtn = modal.querySelector('.season-select-btn');
+            const seasonDropdown = modal.querySelector('.season-select-dropdown');
+            const seasonText = modal.querySelector('.season-select-text');
+            
+            const episodeBtn = modal.querySelector('.episode-select-btn');
+            const episodeDropdown = modal.querySelector('.episode-select-dropdown');
+            const episodeText = modal.querySelector('.episode-select-text');
+
+            // Fetch and populate season data
+            async function populateSeasons() {
+              try {
+                for (let i = 1; i <= (details.number_of_seasons || 1); i++) {
+                  const seasonData = await fetch(`https://api.themoviedb.org/3/tv/${movie.id}/season/${i}?api_key=d1007bf32c19224b866b56f63c3bd4a4`).then(r => r.json());
+                  const seasonName = seasonData.name || `Season ${i}`;
+                  const posterUrl = seasonData.poster_path ? `https://image.tmdb.org/t/p/w92${seasonData.poster_path}` : '';
+                  
+                  const option = document.createElement('button');
+                  option.type = 'button';
+                  option.dataset.value = i;
+                  option.className = `season-option flex items-center gap-3 w-full px-4 py-3 text-left text-white hover:bg-white/10 transition ${i === 1 ? 'bg-red-500/20 border-l-2 border-red-500' : ''}`;
+                  option.innerHTML = `
+                    ${posterUrl ? `<img src="${posterUrl}" alt="${seasonName}" class="w-10 h-14 object-cover rounded flex-shrink-0">` : ''}
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold truncate">${seasonName}</p>
+                    </div>
+                  `;
+                  
+                  option.addEventListener('click', async () => {
+                    seasonText.textContent = seasonName;
+                    seasonBtn.dataset.value = i;
+                    seasonDropdown.classList.add('hidden');
+                    
+                    modal.querySelectorAll('.season-option').forEach(opt => {
+                      opt.classList.remove('bg-red-500/20', 'border-l-2', 'border-red-500');
+                    });
+                    option.classList.add('bg-red-500/20', 'border-l-2', 'border-red-500');
+
+                    // Populate episodes for selected season
+                    episodeDropdown.innerHTML = '';
+                    episodeText.textContent = 'Loading episodes...';
+                    
+                    try {
+                      const freshSeasonData = await fetch(`https://api.themoviedb.org/3/tv/${movie.id}/season/${i}?api_key=d1007bf32c19224b866b56f63c3bd4a4`).then(r => r.json());
+                      console.log('Season data:', freshSeasonData);
+                      
+                      if (freshSeasonData.episodes && freshSeasonData.episodes.length > 0) {
+                        freshSeasonData.episodes.forEach(episode => {
+                          const epOption = document.createElement('button');
+                          epOption.type = 'button';
+                          epOption.dataset.value = episode.episode_number;
+                          const episodePoster = episode.still_path ? `https://image.tmdb.org/t/p/w92${episode.still_path}` : '';
+                          epOption.className = `episode-option flex items-center gap-3 w-full px-4 py-3 text-left text-white hover:bg-white/10 transition ${episode.episode_number === 1 ? 'bg-red-500/20 border-l-2 border-red-500' : ''}`;
+                          epOption.innerHTML = `
+                            ${episodePoster ? `<img src="${episodePoster}" alt="${episode.name}" class="w-10 h-10 object-cover rounded flex-shrink-0">` : '<div class="w-10 h-10 bg-white/10 rounded flex-shrink-0"></div>'}
+                            <div class="flex-1 min-w-0">
+                              <p class="text-xs text-white/60">Ep ${episode.episode_number}</p>
+                              <p class="font-semibold text-sm truncate">${episode.name || 'Unknown'}</p>
+                            </div>
+                          `;
+                          
+                          epOption.addEventListener('click', () => {
+                            episodeText.textContent = `Ep ${episode.episode_number} - ${episode.name}`;
+                            episodeBtn.dataset.value = episode.episode_number;
+                            episodeDropdown.classList.add('hidden');
+                            
+                            modal.querySelectorAll('.episode-option').forEach(opt => {
+                              opt.classList.remove('bg-red-500/20', 'border-l-2', 'border-red-500');
+                            });
+                            epOption.classList.add('bg-red-500/20', 'border-l-2', 'border-red-500');
+                          });
+                          
+                          episodeDropdown.appendChild(epOption);
+                        });
+                        episodeText.textContent = `Episode 1 - ${freshSeasonData.episodes[0].name || 'Unknown'}`;
+                        episodeBtn.dataset.value = 1;
+                      } else {
+                        episodeDropdown.innerHTML = '<div class="w-full px-4 py-3 text-white/50 text-sm">No episodes available</div>';
+                        episodeText.textContent = 'No episodes';
+                      }
+                    } catch (error) {
+                      console.error('Error fetching episodes:', error);
+                      episodeDropdown.innerHTML = '<div class="w-full px-4 py-3 text-white/50 text-sm">Error loading episodes</div>';
+                      episodeText.textContent = 'Error loading';
+                    }
+                  });
+                  
+                  seasonDropdown.appendChild(option);
+                }
+              } catch (error) {
+                console.error('Error fetching seasons:', error);
+              }
+            }
+
+            populateSeasons();
+
+            // Season dropdown
+            seasonBtn.addEventListener('click', () => {
+              seasonDropdown.classList.toggle('hidden');
+              episodeDropdown.classList.add('hidden');
+            });
+
+            // Episode dropdown
+            episodeBtn.addEventListener('click', () => {
+              episodeDropdown.classList.toggle('hidden');
+              seasonDropdown.classList.add('hidden');
+            });
+
+            // Close dropdowns on outside click
+            document.addEventListener('click', (e) => {
+              if (!e.target.closest('.custom-select')) {
+                seasonDropdown.classList.add('hidden');
+                episodeDropdown.classList.add('hidden');
+              }
+            });
+          }
+
+          // Server selection handlers
+          modal.querySelectorAll('.server-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              modal.querySelectorAll('.server-btn').forEach(b => {
+                b.classList.remove('active', 'bg-gradient-to-br', 'from-red-500/30', 'to-red-600/20', 'border-red-500/60', 'text-red-100', 'hover:from-red-500/40', 'hover:to-red-600/30', 'shadow-lg', 'shadow-red-500/30');
+                b.classList.add('bg-white/10', 'border-white/20', 'text-white/70', 'hover:bg-white/15', 'hover:border-white/30');
+                b.querySelector('svg').classList.remove('text-red-300');
+                b.querySelector('svg').classList.add('text-white/50');
+              });
+              btn.classList.remove('bg-white/10', 'border-white/20', 'text-white/70', 'hover:bg-white/15', 'hover:border-white/30');
+              btn.classList.add('active', 'bg-gradient-to-br', 'from-red-500/30', 'to-red-600/20', 'border-red-500/60', 'text-red-100', 'hover:from-red-500/40', 'hover:to-red-600/30', 'shadow-lg', 'shadow-red-500/30');
+              btn.querySelector('svg').classList.remove('text-white/50');
+              btn.querySelector('svg').classList.add('text-red-300');
+            });
+          });
+
+          // Close modal on outside click
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+          });
+
+        } catch (error) {
+          console.error('Error loading movie details:', error);
+          // Fallback to old player
+          startWatching(movie, type, '2embed');
+        }
+      }
+
+      // Start watching with selected server and options
+      function startWatching(movie, type, server, season = null, episode = null) {
+        currentVideoData = { id: movie.id, type, title: movie.title || movie.name };
+        
+        addToRecentlyWatched({
+          id: movie.id,
+          type: type,
+          title: movie.title || movie.name,
+          poster: movie.poster_path ? `https://image.tmdb.org/t/p/w342${movie.poster_path}` : ''
+        });
+
+        videoTitle.textContent = currentVideoData.title;
+        
+        // Build embed URL based on server selection
+        let embedUrl;
+        if (server === 'vidsrc') {
+          embedUrl = type === 'tv' 
+            ? `https://vidsrc.me/embed/tv/${movie.id}/${season}/${episode}`
+            : `https://vidsrc.me/embed/movie/${movie.id}`;
+        } else {
+          embedUrl = type === 'tv' 
+            ? `https://www.2embed.cc/embedtv/${movie.id}?s=${season}&e=${episode}`
+            : `https://www.2embed.cc/embed/${movie.id}`;
+        }
+        
+        videoPlayer.innerHTML = `<iframe src="${embedUrl}" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>`;
+        
+        videoModal.classList.remove('hidden');
+        videoModal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+      };
+
+      // Load trending content
+      async function loadTrending() {
+        try {
+          showSkeletons(trendingRow, 6);
+          
+          // Load both movie and TV data
+          const [movieTrending, tvTrending] = await Promise.all([
+            getTrending('movie', 'week'),
+            getTrending('tv', 'week')
+          ]);
+          
+          trendingCache.movie = movieTrending?.results || [];
+          trendingCache.tv = tvTrending?.results || [];
+          
+          // Display movie trending by default
+          trendingRow.innerHTML = '';
+          if (trendingCache.movie?.length > 0) {
+            trendingCache.movie.slice(0, 10).forEach((movie, index) => {
+              if (movie.poster_path) {
+                trendingRow.appendChild(createTrendingCard(movie, index, 'movie'));
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error loading trending:', error);
+          trendingRow.innerHTML = '<div class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50">Failed to load trending content</div>';
+        }
+      }
+
+      let moviePage = 1;
+      let tvPage = 1;
+      let isLoadingMore = false;
+
+      // Search function
+      async function performSearch(query) {
+        try {
+          const response = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=d1007bf32c19224b866b56f63c3bd4a4&query=${encodeURIComponent(query)}`);
+          return await response.json();
+        } catch (error) {
+          console.error('Search error:', error);
+          return { results: [] };
+        }
+      }
+
+      // Create skeleton loader for cards
+      function createSkeletonCard() {
+        const card = document.createElement('div');
+        card.className = 'movie-card group relative w-40 shrink-0 snap-start sm:w-52 rounded-2xl overflow-hidden skeleton';
+        card.innerHTML = `
+          <div class="relative overflow-hidden rounded-2xl bg-white/5">
+            <div class="aspect-[2/3] w-full skeleton"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
+          </div>
+          <div class="mt-3 space-y-2">
+            <div class="h-4 w-3/4 rounded skeleton"></div>
+            <div class="h-3 w-1/2 rounded skeleton"></div>
+          </div>
+        `;
+        return card;
+      }
+
+      // Show skeleton loaders
+      function showSkeletons(container, count = 8) {
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+          container.appendChild(createSkeletonCard());
+        }
+      }
+
+      // Hide skeletons with animation
+      function hideSkeletons(container) {
+        const skeletons = container.querySelectorAll('.skeleton');
+        skeletons.forEach(skeleton => {
+          skeleton.classList.add('skeleton-fade-out');
+        });
+        setTimeout(() => {
+          container.innerHTML = '';
+        }, 500);
+      }
+
+      // Load movies
+      async function loadMovies() {
+        try {
+          showSkeletons(movieRow, 8);
+          const popular = await getPopularMovies();
+          movieRow.innerHTML = '';
+          movieCards = [];
+          moviePage = 1;
+          
+          if (popular?.results?.length > 0) {
+            popular.results.forEach((movie) => {
+              if (movie.poster_path) {
+                const card = createMovieCard(movie, 'movie');
+                movieRow.appendChild(card);
+                movieCards.push(card);
+              }
+            });
+          }
+          
+          // Setup infinite scroll
+          setupInfiniteScroll();
+        } catch (error) {
+          console.error('Error loading movies:', error);
+          movieRow.innerHTML = '<div class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50">Failed to load content</div>';
+        }
+      }
+
+      // Setup infinite scroll for Popular Content
+      function setupInfiniteScroll() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !isLoadingMore) {
+              loadMoreContent();
+            }
+          });
+        }, { threshold: 0.8 });
+
+        // Create a sentinel element
+        let sentinel = document.getElementById('movieSentinel');
+        if (!sentinel) {
+          sentinel = document.createElement('div');
+          sentinel.id = 'movieSentinel';
+          movieRow.appendChild(sentinel);
+        }
+        observer.observe(sentinel);
+      }
+
+      // Load more content when scrolling
+      async function loadMoreContent() {
+        if (isLoadingMore) return;
+        isLoadingMore = true;
+
+        try {
+          moviePage++;
+          const type = currentTrendingType;
+          const sentinel = document.getElementById('movieSentinel');
+          
+          if (type === 'movie') {
+            const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=d1007bf32c19224b866b56f63c3bd4a4&page=${moviePage}`);
+            const data = await response.json();
+            
+            if (data?.results?.length > 0) {
+              data.results.forEach((item, index) => {
+                if (item.poster_path) {
+                  const card = createMovieCard(item, 'movie');
+                  // Add fade-in animation
+                  card.style.opacity = '0';
+                  card.style.transition = 'opacity 0.5s ease-in-out';
+                  movieRow.insertBefore(card, sentinel);
+                  movieCards.push(card);
+                  
+                  // Stagger animation for smooth effect
+                  setTimeout(() => {
+                    card.style.opacity = '1';
+                  }, index * 50);
+                }
+              });
+            }
+          } else {
+            const response = await fetch(`https://api.themoviedb.org/3/trending/tv/week?api_key=d1007bf32c19224b866b56f63c3bd4a4&page=${tvPage}`);
+            const data = await response.json();
+            tvPage++;
+            
+            if (data?.results?.length > 0) {
+              data.results.forEach((item, index) => {
+                if (item.poster_path) {
+                  const card = createMovieCard(item, 'tv');
+                  // Add fade-in animation
+                  card.style.opacity = '0';
+                  card.style.transition = 'opacity 0.5s ease-in-out';
+                  movieRow.insertBefore(card, sentinel);
+                  movieCards.push(card);
+                  
+                  // Stagger animation for smooth effect
+                  setTimeout(() => {
+                    card.style.opacity = '1';
+                  }, index * 50);
+                }
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading more content:', error);
+        } finally {
+          isLoadingMore = false;
+        }
+      }
+
+      // Tab switching for movies
+      async function switchMoviesTab(type) {
+        currentTrendingType = type;
+        moviePage = 1;
+        tvPage = 1;
+        
+        // Update tab styling
+        moviesMoviesTab.classList.toggle('border-red-500', type === 'movie');
+        moviesMoviesTab.classList.toggle('border-transparent', type !== 'movie');
+        moviesTvTab.classList.toggle('border-red-500', type === 'tv');
+        moviesTvTab.classList.toggle('border-transparent', type !== 'tv');
+        
+        moviesMoviesTab.classList.toggle('text-white', type === 'movie');
+        moviesMoviesTab.classList.toggle('text-white/60', type !== 'movie');
+        moviesTvTab.classList.toggle('text-white', type === 'tv');
+        moviesTvTab.classList.toggle('text-white/60', type !== 'tv');
+
+        // Fade out
+        movieRow.classList.add('opacity-0');
+
+        // Load from API
+        try {
+          const content = type === 'movie' ? await getPopularMovies() : await getTrending('tv', 'week');
+          
+          // Update content after fade out
+          setTimeout(() => {
+            movieRow.innerHTML = '';
+            
+            if (!content?.results || content.results.length === 0) {
+              movieRow.innerHTML = '<div class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50">No content available</div>';
+            } else {
+              content.results.forEach((item) => {
+                if (item.poster_path) {
+                  movieRow.appendChild(createMovieCard(item, type));
+                }
+              });
+              
+              // Add sentinel for infinite scroll
+              const sentinel = document.createElement('div');
+              sentinel.id = 'movieSentinel';
+              movieRow.appendChild(sentinel);
+              
+              // Setup infinite scroll
+              setupInfiniteScroll();
+            }
+
+            // Fade in
+            movieRow.classList.remove('opacity-0');
+          }, 150);
+        } catch (error) {
+          console.error(`Error loading ${type}:`, error);
+          movieRow.classList.remove('opacity-0');
+          movieRow.innerHTML = '<div class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-sm text-white/50">Failed to load content</div>';
+        }
+      }
+
+      // Load documentaries (TV shows)
+      async function loadDocumentaries() {
+        try {
+          const docs = await getTrending('tv', 'week');
+          documentariesRow.innerHTML = '';
+          
+          if (docs?.results?.length > 0) {
+            const docSection = document.createElement('div');
+            docSection.className = 'overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02]';
+            docSection.innerHTML = `
+              <div class="grid gap-6 lg:grid-cols-2 lg:items-center">
+                <div class="flex items-center p-6 sm:p-10 lg:p-14">
+                  <div class="max-w-xl">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">
+                      <iconify-icon icon="solar:leaf-linear" width="16" height="16" style="stroke-width:1.5"></iconify-icon>
+                      Staff pick
+                    </span>
+                    <h2 class="mt-5 text-3xl font-semibold tracking-tight sm:text-5xl">${docs.results[0].name || 'Documentaries'}</h2>
+                    <p class="mt-4 text-sm leading-6 text-white/60 sm:text-base sm:leading-7">${docs.results[0].overview || 'Explore real stories and documentaries'}</p>
+                    <button class="play-button mt-7 inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700" aria-label="Watch now">
+                      <iconify-icon icon="solar:play-bold" width="20" height="20"></iconify-icon>
+                      Watch now
+                    </button>
+                  </div>
+                </div>
+                <img src="https://image.tmdb.org/t/p/w500${docs.results[0].poster_path || ''}" alt="${docs.results[0].name}" class="h-full min-h-72 w-full object-cover" />
+              </div>
+            `;
+            documentariesRow.innerHTML = docSection.innerHTML;
+            
+            // Add play button listener
+            documentariesRow.querySelector('.play-button')?.addEventListener('click', () => {
+              playMovie(docs.results[0], 'tv');
+            });
+          }
+        } catch (error) {
+          console.error('Error loading documentaries:', error);
+          documentariesRow.innerHTML = '<div class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-8 text-center"><p class="text-sm text-white/50">Failed to load documentaries</p></div>';
+        }
+      }
+
+      // Initialize on load
+      document.addEventListener('DOMContentLoaded', async () => {
+        loadSavedShows();
+        attachSidebarMenuHandler();
+        await loadHeroRotation();
+        await loadTrending();
+        await loadMovies();
+        
+        // Setup event listeners
+        searchButton.addEventListener('click', openSearchPanel);
+        closeSearch.addEventListener('click', closeSearchPanel);
+        searchPanel.addEventListener('click', event => {
+          if (event.target === searchPanel) closeSearchPanel();
+        });
+        sidebarToggle.addEventListener('click', openSidebar);
+        closeSidebar.addEventListener('click', closeSidebarPanel);
+        sidebarOverlay.addEventListener('click', closeSidebarPanel);
+        trendingMoviesTab.addEventListener('click', () => switchTrendingTab('movie'));
+        trendingTvTab.addEventListener('click', () => switchTrendingTab('tv'));
+        moviesMoviesTab.addEventListener('click', () => switchMoviesTab('movie'));
+        moviesTvTab.addEventListener('click', () => switchMoviesTab('tv'));
+        
+        // Scroll button functionality
+        document.querySelectorAll('.scroll-button').forEach(button => {
+          button.addEventListener('click', () => {
+            const rowId = button.dataset.row;
+            const row = document.getElementById(rowId);
+            if (row) {
+              row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' });
+            }
+          });
+        });
+
+        // Drag/Swipe and Mouse Wheel Support
+        const horizontalScrolls = document.querySelectorAll('[id$="Row"]');
+        horizontalScrolls.forEach(row => {
+          let isDown = false;
+          let startX;
+          let scrollLeft;
+
+          // Mouse drag
+          row.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - row.offsetLeft;
+            scrollLeft = row.scrollLeft;
+            row.style.cursor = 'grabbing';
+          });
+
+          row.addEventListener('mouseleave', () => {
+            isDown = false;
+            row.style.cursor = 'grab';
+          });
+
+          row.addEventListener('mouseup', () => {
+            isDown = false;
+            row.style.cursor = 'grab';
+          });
+
+          row.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - row.offsetLeft;
+            const walk = (x - startX) * 1.5; // Scroll-fast multiplier
+            row.scrollLeft = scrollLeft - walk;
+          });
+
+          // Touch/Swipe support
+          let touchStartX = 0;
+          let touchScrollLeft = 0;
+
+          row.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchScrollLeft = row.scrollLeft;
+          });
+
+          row.addEventListener('touchmove', (e) => {
+            if (!touchStartX) return;
+            const x = e.touches[0].clientX;
+            const walk = (touchStartX - x) * 1.5;
+            row.scrollLeft = touchScrollLeft + walk;
+          });
+
+          row.addEventListener('touchend', () => {
+            touchStartX = 0;
+          });
+
+          // Mouse wheel scroll
+          row.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            row.scrollBy({
+              left: e.deltaY > 0 ? 100 : -100,
+              behavior: 'smooth'
+            });
+          });
+
+          // Set grab cursor by default
+          row.style.cursor = 'grab';
+        });
+      });
+
+      searchPanel.addEventListener('click', event => {
+        if (event.target === searchPanel) closeSearchPanel();
+      });
+
+      searchInput.addEventListener('input', async (event) => {
+        clearTimeout(searchTimeout);
+        const query = event.target.value.trim();
+
+        if (query.length < 2) {
+          document.getElementById('searchResults').innerHTML = '<div class="col-span-full text-center py-12 text-white/40">Start typing to search...</div>';
+          return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+          try {
+            // Show skeletons
+            const resultsContainer = document.getElementById('searchResults');
+            const skeletonHTML = Array(12).fill(0).map(() => `
+              <div class="skeleton rounded-xl overflow-hidden">
+                <div class="aspect-[2/3] w-full skeleton"></div>
+                <div class="p-3 space-y-2">
+                  <div class="h-4 w-3/4 rounded skeleton"></div>
+                  <div class="h-3 w-1/2 rounded skeleton"></div>
+                </div>
+              </div>
+            `).join('');
+            resultsContainer.innerHTML = skeletonHTML;
+
+            const results = await performSearch(query);
+            
+            if (!results?.results || results.results.length === 0) {
+              resultsContainer.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-white/40">No results found for "' + query + '"</p></div>';
+              return;
+            }
+
+            resultsContainer.innerHTML = '';
+            results.results.forEach(item => {
+              if (!item.poster_path) return;
+
+              const type = item.media_type || (item.title ? 'movie' : 'tv');
+              const card = document.createElement('div');
+              card.className = 'group relative cursor-pointer rounded-2xl overflow-hidden bg-white/5 hover:bg-white/10 transition border border-white/10 hover:border-white/20';
+              card.innerHTML = `
+                <div class="relative overflow-hidden rounded-2xl">
+                  <img 
+                    src="https://image.tmdb.org/t/p/w342${item.poster_path}" 
+                    alt="${item.title || item.name}" 
+                    class="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition flex flex-col items-end justify-end p-3">
+                    <button class="play-btn grid size-12 place-items-center rounded-full bg-red-600 text-white shadow-xl hover:scale-105 hover:bg-red-700 transition opacity-0 group-hover:opacity-100" aria-label="Play">
+                      <iconify-icon icon="solar:play-bold" width="24" height="24"></iconify-icon>
+                    </button>
+                  </div>
+                </div>
+                <div class="p-3">
+                  <h3 class="text-sm font-semibold truncate text-white">${item.title || item.name}</h3>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs px-2 py-1 rounded-md bg-red-500/20 border border-red-500/30 text-red-200 font-semibold capitalize">${type === 'tv' ? 'TV' : 'Movie'}</span>
+                    ${item.release_date || item.first_air_date ? `<span class="text-xs text-white/50">${(item.release_date || item.first_air_date).split('-')[0]}</span>` : ''}
+                  </div>
+                </div>
+              `;
+
+              const playButton = card.querySelector('.play-btn');
+              playButton.addEventListener('click', () => {
+                playMovie(item, type);
+                closeSearchPanel();
+              });
+
+              resultsContainer.appendChild(card);
+            });
+          } catch (error) {
+            console.error('Search error:', error);
+            document.getElementById('searchResults').innerHTML = '<div class="col-span-full text-center py-12 text-white/40">Failed to search. Please try again.</div>';
+          }
+        }, 300);
+      });
+
+      let searchTimeout;
+
+      document.querySelectorAll('.play-button').forEach(button => {
+        button.addEventListener('click', () => {
+          videoTitle.textContent = button.dataset.title;
+          videoPlayer.src = button.dataset.video;
+          videoModal.classList.remove('hidden');
+          videoModal.classList.add('flex');
+          document.body.classList.add('overflow-hidden');
+          videoPlayer.play().catch(() => {});
+        });
+      });
+
+      function closePlayer() {
+        if (currentVideoData) {
+          updateRecentlyWatchedTimestamp(currentVideoData.id, currentVideoData.type);
+        }
+        videoPlayer.innerHTML = '';
+        videoModal.classList.add('hidden');
+        videoModal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+      }
+
+      closeVideo.addEventListener('click', closePlayer);
+      videoModal.addEventListener('click', event => {
+        if (event.target === videoModal) closePlayer();
+      });
+
+      // Notification system
+      function showNotification(message, type = 'success') {
+        const container = document.getElementById('notificationContainer');
+        const notification = document.createElement('div');
+        
+        const bgColor = type === 'success' ? 'bg-green-500/20 border-green-500/40' : 'bg-red-500/20 border-red-500/40';
+        const textColor = type === 'success' ? 'text-green-200' : 'text-red-200';
+        const icon = type === 'success' ? 'solar:check-circle-linear' : 'solar:close-circle-linear';
+        
+        notification.className = `pointer-events-auto flex items-center gap-3 rounded-2xl border ${bgColor} bg-gradient-to-r from-black/40 via-black/50 to-black/40 px-4 py-3 backdrop-blur-xl shadow-2xl shadow-black/50`;
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+        notification.style.transition = 'all 0.3s ease-out';
+        
+        notification.innerHTML = `
+          <iconify-icon icon="${icon}" width="20" height="20" class="${textColor}"></iconify-icon>
+          <span class="text-sm font-medium ${textColor}">${message}</span>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => {
+          notification.style.opacity = '1';
+          notification.style.transform = 'translateY(0)';
+        }, 10);
+        
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          notification.style.transform = 'translateY(-20px)';
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      }
+
+      function openInfo() {
+        infoModal.classList.remove('hidden');
+        infoModal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+      }
+
+      function closeInfoModal() {
+        infoModal.classList.add('hidden');
+        infoModal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+      }
+
+      // Info popup for footer buttons
+      function showInfoPopup(type) {
+        const infos = {
+          about: {
+            title: 'About FLIXA',
+            content: 'FLIXA is a free streaming platform for openly licensed films. Watch high-quality content without subscriptions, accounts, or payments. Our mission is to make films accessible to everyone.',
+            icon: 'solar:info-circle-linear',
+            bgColor: 'bg-blue-400/10',
+            textColor: 'text-blue-300'
+          },
+          licensing: {
+            title: 'Licensing & Rights',
+            content: 'All content on FLIXA is openly licensed and legally available to stream. We verify licensing for all titles. Verify licensing before publishing or distributing third-party media.',
+            icon: 'solar:shield-check-linear',
+            bgColor: 'bg-emerald-400/10',
+            textColor: 'text-emerald-300'
+          },
+          privacy: {
+            title: 'Privacy Policy',
+            content: 'FLIXA respects your privacy. We do not collect personal data, track your activity, or share information with third parties. Your viewing is completely private and anonymous.',
+            icon: 'solar:shield-linear',
+            bgColor: 'bg-purple-400/10',
+            textColor: 'text-purple-300'
+          },
+          help: {
+            title: 'Help & Support',
+            content: 'Search for movies and shows using the search bar. Create a watchlist by clicking the bookmark icon. Switch between servers for optimal performance. Use the Cloud Remote to control playback from your phone.',
+            icon: 'solar:help-linear',
+            bgColor: 'bg-orange-400/10',
+            textColor: 'text-orange-300'
+          }
+        };
+
+        const info = infos[type] || infos.about;
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-[85] flex items-center justify-center bg-black/80 p-4 backdrop-blur-lg';
+        modal.innerHTML = `
+          <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151515] p-6 shadow-2xl sm:p-8">
+            <div class="grid size-12 place-items-center rounded-xl ${info.bgColor} ${info.textColor}">
+              <iconify-icon
+                icon="${info.icon}"
+                width="25"
+                height="25"
+                style="stroke-width:1.5"
+              ></iconify-icon>
+            </div>
+            <h2 class="mt-6 text-2xl font-semibold tracking-tight">
+              ${info.title}
+            </h2>
+            <p class="mt-3 text-sm leading-6 text-white/60">
+              ${info.content}
+            </p>
+            <button class="mt-6 w-full rounded-lg bg-white py-3 text-sm font-semibold text-black hover:bg-white/80 transition">
+              Got it
+            </button>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const gotItBtn = modal.querySelector('button');
+
+        gotItBtn.addEventListener('click', () => modal.remove());
+
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.remove();
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') modal.remove();
+        }, { once: true });
+      }
+
+      // Support popup with ratings and reviews
+      async function showSupportPopup() {
+        let reviews = [];
+        try {
+          reviews = await getReviews();
+          if (!Array.isArray(reviews)) {
+            reviews = [];
+          }
+        } catch (error) {
+          console.error('Error loading reviews:', error);
+          reviews = [];
+        }
+        
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-[85] flex items-center justify-center bg-black/80 p-4 backdrop-blur-lg';
+        modal.innerHTML = `
+          <div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#151515] p-6 shadow-2xl sm:p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between gap-4 mb-6">
+              <div class="flex items-center gap-3">
+                <div class="grid size-12 place-items-center rounded-xl bg-blue-400/10 text-blue-300">
+                  <iconify-icon icon="solar:heart-linear" width="25" height="25" style="stroke-width:1.5"></iconify-icon>
+                </div>
+                <h2 class="text-2xl font-semibold tracking-tight">Support FLIXA</h2>
+              </div>
+              <a href="https://bannedvariable.netlify.app" target="_blank" class="grid size-10 place-items-center rounded-full bg-white/10 text-white/60 hover:bg-blue-500/20 hover:text-blue-300 transition" title="Visit portfolio">
+                <iconify-icon icon="solar:link-linear" width="20" height="20"></iconify-icon>
+              </a>
+            </div>
+
+            <!-- Add Review Form -->
+            <div class="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+              <h3 class="text-sm font-semibold text-white mb-4">Leave a Review</h3>
+              <div class="space-y-3">
+                <input type="text" placeholder="Your name" class="support-name w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-blue-500">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-white/60">Rating:</span>
+                  <div class="rating-selector flex gap-2">
+                    ${Array.from({length: 10}, (_, i) => `
+                      <button type="button" data-rating="${i + 1}" class="rating-btn w-8 h-8 rounded-lg bg-white/10 border border-white/20 text-white/70 hover:bg-blue-500/20 hover:border-blue-500/40 hover:text-blue-300 transition text-xs font-semibold">${i + 1}</button>
+                    `).join('')}
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <input type="text" placeholder="Add a note (optional)" class="support-note flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-blue-500">
+                  <button class="submit-review px-4 py-2 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-200 font-semibold hover:bg-blue-500/30 transition text-sm">Submit</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reviews Display -->
+            <div>
+              <h3 class="text-sm font-semibold text-white mb-4">Reviews (${reviews.length})</h3>
+              <div class="space-y-3 max-h-64 overflow-y-auto">
+                ${reviews.length === 0 ? `
+                  <div class="text-center py-8 text-white/40">
+                    <p class="text-sm">No reviews yet. Be the first!</p>
+                  </div>
+                ` : reviews.map(review => `
+                  <div class="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <div class="flex items-center justify-between mb-2">
+                      <p class="font-semibold text-white text-sm">${review.name}</p>
+                      <div class="flex items-center gap-1">
+                        ${Array.from({length: 5}, (_, i) => `
+                          <iconify-icon icon="solar:star-${i < Math.round(review.rating / 2) ? 'bold' : 'linear'}" width="14" height="14" class="${i < Math.round(review.rating / 2) ? 'text-yellow-400' : 'text-white/30'}"></iconify-icon>
+                        `).join('')}
+                        <span class="text-xs text-white/50 ml-1">${review.rating}/10</span>
+                      </div>
+                    </div>
+                    ${review.note ? `<p class="text-xs text-white/60">"${review.note}"</p>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Rating selection
+        let selectedRating = 0;
+        modal.querySelectorAll('.rating-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectedRating = parseInt(btn.dataset.rating);
+            modal.querySelectorAll('.rating-btn').forEach(b => {
+              b.classList.remove('bg-blue-500/20', 'border-blue-500/40', 'text-blue-300');
+              b.classList.add('bg-white/10', 'border-white/20', 'text-white/70');
+            });
+            btn.classList.add('bg-blue-500/20', 'border-blue-500/40', 'text-blue-300');
+          });
+        });
+
+        // Submit review
+        modal.querySelector('.submit-review').addEventListener('click', async () => {
+          const name = modal.querySelector('.support-name').value.trim();
+          const note = modal.querySelector('.support-note').value.trim();
+
+          if (!name) {
+            showNotification('Please enter your name', 'error');
+            return;
+          }
+
+          if (selectedRating === 0) {
+            showNotification('Please select a rating', 'error');
+            return;
+          }
+
+          try {
+            await addReview({ name, rating: selectedRating, note });
+            showNotification(`Thank you ${name}! Your review was submitted`, 'success');
+            modal.remove();
+          } catch (error) {
+            console.error('Error submitting review:', error);
+            showNotification('Error submitting review', 'error');
+          }
+        });
+
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.remove();
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') modal.remove();
+        }, { once: true });
+      }
+
+      infoButton.addEventListener('click', openInfo);
+      understoodButton.addEventListener('click', closeInfoModal);
+
+      supportButton.addEventListener('click', () => {
+        showSupportPopup();
+      });
+
+      infoModal.addEventListener('click', event => {
+        if (event.target === infoModal) closeInfoModal();
+      });
+
+      // Footer info button event listeners
+      document.querySelectorAll('.info-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const infoType = btn.dataset.info;
+          showInfoPopup(infoType);
+        });
+      });
+
+      function updateSavedState() {
+        if (currentHeroMovie) {
+          const isSaved = savedShows.some(s => s.id === currentHeroMovie.id && s.type === currentHeroType);
+          heroListText.textContent = isSaved ? 'Saved' : 'My List';
+          heroListIcon.icon = isSaved ? 'solar:check-circle-linear' : 'solar:add-circle-linear';
+        } else {
+          heroListText.textContent = 'My List';
+          heroListIcon.icon = 'solar:add-circle-linear';
+        }
+      }
+
+      heroListButton.addEventListener('click', () => {
+        if (currentHeroMovie) {
+          addToSavedShows(currentHeroMovie, currentHeroType);
+          updateSavedState();
+        }
+      });
+
+      updateSavedState();
+
+      document.querySelectorAll('.row-next').forEach(button => {
+        button.addEventListener('click', () => {
+          const row = document.getElementById(button.dataset.row);
+          row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' });
+        });
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          if (!videoModal.classList.contains('hidden')) closePlayer();
+          if (!searchPanel.classList.contains('hidden')) closeSearchPanel();
+          if (!infoModal.classList.contains('hidden')) closeInfoModal();
+        }
+
+        if (event.key === '/' && !event.ctrlKey && !event.metaKey) {
+          event.preventDefault();
+          openSearchPanel();
+        }
+      });
+
+      console.log('✅ FLIXA initialized - backend connected, all dynamic content loaded');
+
+      // Initialize remote control
+      const remoteControl = new RemoteController();
+      console.log('✅ Remote control enabled - use arrow keys to navigate, Enter to select');
+    </script>
+
+    <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+    <script>
+      (() => {
+        const pairModal = document.getElementById('remotePairModal');
+        const pairButtons = [document.getElementById('cloudRemoteButton'), document.getElementById('pairRemoteButton')].filter(Boolean);
+        const closePair = document.getElementById('closeRemotePair');
+        const qrCode = document.getElementById('remoteQrCode');
+        const qrLoading = document.getElementById('remoteQrLoading');
+        const pairStatus = document.getElementById('remotePairStatus');
+        const copyLink = document.getElementById('copyRemoteLink');
+        const controller = document.getElementById('remoteController');
+        const connectionStatus = document.getElementById('remoteConnectionStatus');
+        const installButton = document.getElementById('installRemoteButton');
+        let peer;
+        let connection;
+        let pairingUrl = '';
+        let installPrompt;
+
+        function setPairStatus(text, color = 'bg-amber-400') {
+          pairStatus.innerHTML = '<span class="size-2 rounded-full ' + color + '"></span>' + text;
+        }
+
+        function runCommand(command) {
+          if (command === 'playPause') {
+            if (!videoPlayer.getAttribute('src')) {
+              document.querySelector('.play-button')?.click();
+            } else if (videoPlayer.paused) {
+              videoPlayer.play().catch(() => {});
+            } else {
+              videoPlayer.pause();
+            }
+          }
+          if (command === 'seekBack' && videoPlayer.getAttribute('src')) videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 10);
+          if (command === 'seekForward' && videoPlayer.getAttribute('src')) videoPlayer.currentTime = Math.min(videoPlayer.duration || Infinity, videoPlayer.currentTime + 10);
+          if (command === 'mute') videoPlayer.muted = !videoPlayer.muted;
+          if (command === 'browse') document.getElementById('movies')?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function startHost() {
+          if (peer) return;
+          if (!window.Peer) {
+            setPairStatus('Cloud service unavailable', 'bg-red-500');
+            return;
+          }
+          peer = new Peer();
+          peer.on('open', id => {
+            const url = new URL(window.location.href);
+            url.search = '';
+            url.hash = '';
+            url.searchParams.set('remote', id);
+            pairingUrl = url.toString();
+            qrCode.src = 'https://quickchart.io/qr?size=320&margin=1&text=' + encodeURIComponent(pairingUrl);
+            qrCode.onload = () => {
+              qrLoading.classList.add('hidden');
+              qrCode.classList.remove('hidden');
+            };
+            copyLink.disabled = false;
+            setPairStatus('Ready to pair', 'bg-emerald-400');
+          });
+          peer.on('connection', incoming => {
+            if (connection) connection.close();
+            connection = incoming;
+            connection.on('open', () => setPairStatus('Remote connected', 'bg-emerald-400'));
+            connection.on('data', data => runCommand(data?.command));
+            connection.on('close', () => setPairStatus('Remote disconnected', 'bg-red-500'));
+          });
+          peer.on('error', () => setPairStatus('Could not create a session', 'bg-red-500'));
+        }
+
+        function openPairing() {
+          pairModal.classList.remove('hidden');
+          pairModal.classList.add('flex');
+          document.body.classList.add('overflow-hidden');
+          startHost();
+        }
+
+        function closePairing() {
+          pairModal.classList.add('hidden');
+          pairModal.classList.remove('flex');
+          document.body.classList.remove('overflow-hidden');
+        }
+
+        pairButtons.forEach(button => button.addEventListener('click', openPairing));
+        closePair.addEventListener('click', closePairing);
+        pairModal.addEventListener('click', event => {
+          if (event.target === pairModal) closePairing();
+        });
+        copyLink.addEventListener('click', async () => {
+          if (!pairingUrl) return;
+          await navigator.clipboard.writeText(pairingUrl);
+          copyLink.innerHTML = '<iconify-icon icon="solar:check-circle-linear" width="16" height="16"></iconify-icon>Link copied';
+        });
+
+        const remoteId = new URLSearchParams(window.location.search).get('remote');
+        if (remoteId && window.self !== window.top) {
+          // Only show controller if in an iframe (i.e., paired remote)
+          controller.classList.remove('hidden');
+          controller.classList.add('flex');
+          document.body.classList.add('overflow-hidden');
+          if (!window.Peer) {
+            connectionStatus.textContent = 'Cloud service unavailable';
+            return;
+          }
+          peer = new Peer();
+          peer.on('open', () => {
+            connection = peer.connect(remoteId, { reliable: true });
+            connection.on('open', () => {
+              connectionStatus.textContent = 'Connected securely';
+              connectionStatus.classList.add('text-emerald-400');
+            });
+            connection.on('close', () => {
+              connectionStatus.textContent = 'Screen disconnected';
+              connectionStatus.classList.remove('text-emerald-400');
+            });
+            connection.on('error', () => connectionStatus.textContent = 'Connection failed');
+          });
+          document.querySelectorAll('[data-remote-command]').forEach(button => {
+            button.addEventListener('click', () => {
+              if (connection?.open) connection.send({ command: button.dataset.remoteCommand });
+            });
+          });
+        }
+
+        window.addEventListener('beforeinstallprompt', event => {
+          event.preventDefault();
+          installPrompt = event;
+          installButton.classList.remove('hidden');
+        });
+        installButton.addEventListener('click', async () => {
+          if (!installPrompt) return;
+          installPrompt.prompt();
+          await installPrompt.userChoice;
+          installPrompt = null;
+          installButton.classList.add('hidden');
+        });
+      })();
+    </script>
+  </body>
+</html>
