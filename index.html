@@ -2890,11 +2890,15 @@
         });
 
         const remoteId = new URLSearchParams(window.location.search).get('remote');
-        if (remoteId && window.self !== window.top) {
-          // Only show controller if in an iframe (i.e., paired remote)
+        if (remoteId) {
+          // Show controller interface when ?remote=peerid parameter is present
           controller.classList.remove('hidden');
           controller.classList.add('flex');
           document.body.classList.add('overflow-hidden');
+          // Hide main content when in remote mode
+          document.getElementById('siteHeader')?.classList.add('hidden');
+          document.getElementById('heroSection')?.classList.add('hidden');
+          document.getElementById('movies')?.classList.add('hidden');
           if (!window.Peer) {
             connectionStatus.textContent = 'Cloud service unavailable';
             return;
