@@ -871,55 +871,31 @@
         return response.json();
       };
 
-      // ===== Supabase Client =====
-      const SUPABASE_URL = 'https://xoadtbnhtpbbvqwmggja.supabase.co';
-      const SUPABASE_KEY = 'sb_publishable_B3bIfUEtgfXGcXj3fRTQcA_41IKh74H';
-
-      const supabaseClient = {
-        async request(method, endpoint, body = null) {
-          const options = {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SUPABASE_KEY}`,
-              'apikey': SUPABASE_KEY
-            }
-          };
-          if (body) options.body = JSON.stringify(body);
-          
-          const response = await fetch(`${SUPABASE_URL}/rest/v1${endpoint}`, options);
-          if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
-          return response.json();
-        }
-      };
+      // ===== Backend Configuration =====
+      const BACKEND_URL = 'https://flixa-backend-production.up.railway.app';
 
       const getReviews = async () => {
         try {
-          const reviews = await supabaseClient.request('GET', '/reviews?order=created_at.desc');
-          return reviews.map(r => ({
-            rating: r.rating,
-            name: r.name,
-            note: r.note,
-            date: r.created_at,
-            portfolio: r.portfolio_link
-          }));
+          const response = await fetch(`${BACKEND_URL}/api/reviews`);
+          if (!response.ok) throw new Error('Failed to fetch reviews');
+          return await response.json();
         } catch (e) {
-          console.error('Failed to fetch reviews:', e);
+          console.error('Failed to fetch reviews from backend:', e);
           return JSON.parse(localStorage.getItem('flixa-reviews') || '[]');
         }
       };
 
       const addReview = async (review) => {
         try {
-          const result = await supabaseClient.request('POST', '/reviews', {
-            rating: review.rating,
-            name: review.name,
-            note: review.note,
-            portfolio_link: review.portfolio || 'https://bannedvariable.netlify.app'
+          const response = await fetch(`${BACKEND_URL}/api/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(review)
           });
-          return { ...result[0], date: result[0].created_at, portfolio: result[0].portfolio_link };
+          if (!response.ok) throw new Error('Failed to add review');
+          return await response.json();
         } catch (e) {
-          console.error('Failed to add review:', e);
+          console.error('Failed to add review to backend:', e);
           // Fallback to localStorage
           const reviews = JSON.parse(localStorage.getItem('flixa-reviews') || '[]');
           const newReview = { ...review, date: new Date().toISOString() };
