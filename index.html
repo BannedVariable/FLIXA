@@ -272,8 +272,20 @@
 
         <nav
           id="mobileMenu"
-          class="hidden border-t border-white/10 bg-black/95 px-5 py-5 text-sm backdrop-blur-xl md:hidden"
+          class="hidden border-t border-white/10 bg-black/95 px-5 py-4 text-sm backdrop-blur-xl md:hidden space-y-2"
         >
+          <button id="mobileCloudRemote" class="w-full flex items-center gap-3 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-red-100 hover:bg-red-500/20 transition">
+            <iconify-icon icon="solar:smartphone-2-linear" width="18" height="18"></iconify-icon>
+            Cloud Remote
+          </button>
+          <button id="mobileInfo" class="w-full flex items-center gap-3 rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white/80 hover:bg-white/10 transition">
+            <iconify-icon icon="solar:info-circle-linear" width="18" height="18"></iconify-icon>
+            Free & legal
+          </button>
+          <button id="mobileSupport" class="w-full flex items-center gap-3 rounded-lg bg-blue-500/10 border border-blue-500/20 px-4 py-3 text-blue-100 hover:bg-blue-500/20 transition">
+            <iconify-icon icon="solar:heart-linear" width="18" height="18"></iconify-icon>
+            Support
+          </button>
         </nav>
       </header>
 
@@ -651,90 +663,81 @@
       >
         <div>
           <div class="text-lg font-semibold tracking-[-0.08em] text-red-500">
-            FLIXA
+            FLIXA Remote Control
           </div>
           <p id="remoteConnectionStatus" class="mt-1 text-xs text-white/40">
             Connecting to screen…
           </p>
         </div>
-        <button
-          id="installRemoteButton"
-          class="hidden rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70"
-        >
-          Install app
-        </button>
       </div>
-      <div class="flex flex-1 flex-col items-center justify-center p-6">
-        <div class="mb-10 text-center">
-          <p class="text-xs uppercase tracking-[0.25em] text-white/35">
-            Cloud remote
-          </p>
-          <h1 class="mt-3 text-2xl font-semibold tracking-tight">
-            FLIXA Screen
-          </h1>
+
+      <div class="flex flex-1 flex-col items-center justify-center gap-8 p-6 overflow-y-auto">
+        <!-- Navigation Controls -->
+        <div class="w-full max-w-xs">
+          <p class="mb-4 text-center text-xs uppercase tracking-[0.15em] text-white/40">Navigation</p>
+          <div class="grid grid-cols-3 gap-3 items-center justify-items-center">
+            <div></div>
+            <button data-remote-command="arrowUp" class="grid size-14 place-items-center rounded-full bg-red-500/20 border border-red-500/30 text-white active:bg-red-500/40">
+              <iconify-icon icon="solar:arrow-up-linear" width="24" height="24"></iconify-icon>
+            </button>
+            <div></div>
+            
+            <button data-remote-command="arrowLeft" class="grid size-14 place-items-center rounded-full bg-red-500/20 border border-red-500/30 text-white active:bg-red-500/40">
+              <iconify-icon icon="solar:arrow-left-linear" width="24" height="24"></iconify-icon>
+            </button>
+            <button data-remote-command="enter" class="grid size-14 place-items-center rounded-full bg-red-500 text-white active:scale-95 font-bold">OK</button>
+            <button data-remote-command="arrowRight" class="grid size-14 place-items-center rounded-full bg-red-500/20 border border-red-500/30 text-white active:bg-red-500/40">
+              <iconify-icon icon="solar:arrow-right-linear" width="24" height="24"></iconify-icon>
+            </button>
+            
+            <div></div>
+            <button data-remote-command="arrowDown" class="grid size-14 place-items-center rounded-full bg-red-500/20 border border-red-500/30 text-white active:bg-red-500/40">
+              <iconify-icon icon="solar:arrow-down-linear" width="24" height="24"></iconify-icon>
+            </button>
+            <div></div>
+          </div>
         </div>
-        <div class="grid grid-cols-3 items-center gap-5">
-          <button
-            data-remote-command="seekBack"
-            class="grid size-16 place-items-center rounded-full bg-white/10 text-white active:scale-95"
-            aria-label="Rewind 10 seconds"
-          >
-            <iconify-icon
-              icon="solar:rewind-10-seconds-back-linear"
-              width="27"
-              height="27"
-            ></iconify-icon>
-          </button>
-          <button
-            data-remote-command="playPause"
-            class="grid size-24 place-items-center rounded-full bg-white text-black shadow-2xl shadow-red-500/10 active:scale-95"
-            aria-label="Play or pause"
-          >
-            <iconify-icon
-              icon="solar:play-bold"
-              width="35"
-              height="35"
-            ></iconify-icon>
-          </button>
-          <button
-            data-remote-command="seekForward"
-            class="grid size-16 place-items-center rounded-full bg-white/10 text-white active:scale-95"
-            aria-label="Forward 10 seconds"
-          >
-            <iconify-icon
-              icon="solar:rewind-10-seconds-forward-linear"
-              width="27"
-              height="27"
-            ></iconify-icon>
-          </button>
+
+        <!-- Media Controls -->
+        <div class="w-full max-w-xs">
+          <p class="mb-4 text-center text-xs uppercase tracking-[0.15em] text-white/40">Media</p>
+          <div class="grid grid-cols-3 gap-3">
+            <button data-remote-command="seekBack" class="grid size-12 place-items-center rounded-lg bg-white/10 text-white active:scale-95">
+              <iconify-icon icon="solar:rewind-10-seconds-back-linear" width="20" height="20"></iconify-icon>
+            </button>
+            <button data-remote-command="playPause" class="grid size-12 place-items-center rounded-lg bg-white text-black active:scale-95 font-bold">
+              <iconify-icon icon="solar:play-bold" width="20" height="20"></iconify-icon>
+            </button>
+            <button data-remote-command="seekForward" class="grid size-12 place-items-center rounded-lg bg-white/10 text-white active:scale-95">
+              <iconify-icon icon="solar:rewind-10-seconds-forward-linear" width="20" height="20"></iconify-icon>
+            </button>
+          </div>
         </div>
-        <div class="mt-12 flex gap-4">
-          <button
-            data-remote-command="mute"
-            class="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm active:scale-95"
-          >
-            <iconify-icon
-              icon="solar:volume-loud-linear"
-              width="20"
-              height="20"
-            ></iconify-icon>
-            Mute
+
+        <!-- Action Buttons -->
+        <div class="w-full max-w-xs space-y-2">
+          <p class="mb-4 text-center text-xs uppercase tracking-[0.15em] text-white/40">Actions</p>
+          <button data-remote-command="search" class="w-full rounded-lg bg-blue-500/20 border border-blue-500/30 px-4 py-3 text-sm text-white active:bg-blue-500/40">
+            <iconify-icon icon="solar:magnifer-linear" width="16" height="16" class="inline mr-2"></iconify-icon> Search
           </button>
-          <button
-            data-remote-command="browse"
-            class="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm active:scale-95"
-          >
-            <iconify-icon
-              icon="solar:clapperboard-open-play-linear"
-              width="20"
-              height="20"
-            ></iconify-icon>
-            Browse
+          <button data-remote-command="browse" class="w-full rounded-lg bg-white/10 px-4 py-3 text-sm text-white active:bg-white/20">
+            <iconify-icon icon="solar:clapperboard-open-play-linear" width="16" height="16" class="inline mr-2"></iconify-icon> Browse
+          </button>
+          <button data-remote-command="saved" class="w-full rounded-lg bg-white/10 px-4 py-3 text-sm text-white active:bg-white/20">
+            <iconify-icon icon="solar:bookmark-linear" width="16" height="16" class="inline mr-2"></iconify-icon> Saved Shows
+          </button>
+          <button data-remote-command="info" class="w-full rounded-lg bg-white/10 px-4 py-3 text-sm text-white active:bg-white/20">
+            <iconify-icon icon="solar:info-circle-linear" width="16" height="16" class="inline mr-2"></iconify-icon> Info
           </button>
         </div>
-        <p class="mt-12 max-w-xs text-center text-xs leading-5 text-white/35">
-          Keep this page open while using the remote. Add it to your home screen
-          for an app-like experience.
+
+        <!-- Exit Button -->
+        <button data-remote-command="escape" class="mt-8 rounded-lg bg-red-500/10 border border-red-500/30 px-6 py-2 text-sm text-white active:bg-red-500/20">
+          Exit Remote (ESC)
+        </button>
+
+        <p class="mt-auto mb-4 max-w-xs text-center text-xs leading-5 text-white/35">
+          Use arrow keys to navigate, Enter to select, ESC to exit. Keep this open while controlling your screen.
         </p>
       </div>
     </div>
@@ -1106,6 +1109,22 @@
 
       document.querySelectorAll('#mobileMenu a').forEach(link => {
         link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+      });
+
+      // Mobile menu button handlers
+      document.getElementById('mobileCloudRemote')?.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        document.getElementById('cloudRemoteButton')?.click();
+      });
+
+      document.getElementById('mobileInfo')?.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        document.getElementById('infoButton')?.click();
+      });
+
+      document.getElementById('mobileSupport')?.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        document.getElementById('supportButton')?.click();
       });
 
       function openSearchPanel() {
@@ -2831,7 +2850,38 @@
           if (command === 'seekBack' && videoPlayer.getAttribute('src')) videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 10);
           if (command === 'seekForward' && videoPlayer.getAttribute('src')) videoPlayer.currentTime = Math.min(videoPlayer.duration || Infinity, videoPlayer.currentTime + 10);
           if (command === 'mute') videoPlayer.muted = !videoPlayer.muted;
+          
+          // Navigation commands
+          if (command === 'arrowUp') {
+            const event = new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true });
+            document.dispatchEvent(event);
+          }
+          if (command === 'arrowDown') {
+            const event = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true });
+            document.dispatchEvent(event);
+          }
+          if (command === 'arrowLeft') {
+            const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
+            document.dispatchEvent(event);
+          }
+          if (command === 'arrowRight') {
+            const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+            document.dispatchEvent(event);
+          }
+          if (command === 'enter') {
+            const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+            document.dispatchEvent(event);
+          }
+          if (command === 'escape') {
+            const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
+            document.dispatchEvent(event);
+          }
+          
+          // Action buttons
+          if (command === 'search') document.getElementById('searchButton')?.click();
           if (command === 'browse') document.getElementById('movies')?.scrollIntoView({ behavior: 'smooth' });
+          if (command === 'saved') document.getElementById('sidebarToggle')?.click();
+          if (command === 'info') document.getElementById('infoButton')?.click();
         }
 
         function startHost() {
@@ -2891,46 +2941,35 @@
 
         const remoteId = new URLSearchParams(window.location.search).get('remote');
         if (remoteId) {
-          // Remote mode: show full site but send all commands to desktop
+          // Show controller interface when ?remote=peerid parameter is present
+          controller.classList.remove('hidden');
+          controller.classList.add('flex');
+          document.body.classList.add('overflow-hidden');
+          // Hide main content when in remote mode
+          document.getElementById('siteHeader')?.classList.add('hidden');
+          document.getElementById('heroSection')?.classList.add('hidden');
+          document.getElementById('movies')?.classList.add('hidden');
           if (!window.Peer) {
-            console.error('Cloud service unavailable');
+            connectionStatus.textContent = 'Cloud service unavailable';
             return;
           }
           peer = new Peer();
           peer.on('open', () => {
             connection = peer.connect(remoteId, { reliable: true });
             connection.on('open', () => {
-              console.log('Connected to desktop securely');
+              connectionStatus.textContent = 'Connected securely';
+              connectionStatus.classList.add('text-emerald-400');
             });
             connection.on('close', () => {
-              console.log('Screen disconnected');
+              connectionStatus.textContent = 'Screen disconnected';
+              connectionStatus.classList.remove('text-emerald-400');
             });
-            connection.on('error', () => console.error('Connection failed'));
+            connection.on('error', () => connectionStatus.textContent = 'Connection failed');
           });
-          
-          // Intercept all button clicks and send commands to desktop
-          document.addEventListener('click', (e) => {
-            const button = e.target.closest('button, a, [role="button"]');
-            if (!button || !connection?.open) return;
-            
-            // Send action to desktop
-            const action = button.dataset.remoteCommand || button.id || button.textContent;
-            connection.send({ 
-              command: 'action',
-              target: button.id,
-              action: action
+          document.querySelectorAll('[data-remote-command]').forEach(button => {
+            button.addEventListener('click', () => {
+              if (connection?.open) connection.send({ command: button.dataset.remoteCommand });
             });
-          });
-          
-          // Intercept input changes
-          document.addEventListener('change', (e) => {
-            if (connection?.open && e.target.tagName === 'INPUT') {
-              connection.send({
-                command: 'input',
-                targetId: e.target.id,
-                value: e.target.value
-              });
-            }
           });
         }
 
