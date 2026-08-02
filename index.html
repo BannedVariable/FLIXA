@@ -855,17 +855,155 @@
     <div id="notificationContainer" class="fixed top-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <script type="module">
-      import {
-        getTrending,
-        getPopularMovies,
-        search,
-        addToRecentlyWatched,
-        updateRecentlyWatchedTimestamp,
-        config,
-        getReviews,
-        addReview
-      } from './backend/index.js';
-      import RemoteController from './backend/utils/remote.js';
+      // ===== Frontend-only client functions =====
+      const getTrending = async (type, timeWindow) => {
+        const response = await fetch(`https://api.themoviedb.org/3/trending/${type}/${timeWindow}?api_key=d1007bf32c19224b866b56f63c3bd4a4`);
+        return response.json();
+      };
+
+      const getPopularMovies = async (page = 1) => {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=d1007bf32c19224b866b56f63c3bd4a4&page=${page}`);
+        return response.json();
+      };
+
+      const search = async (query) => {
+        const response = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=d1007bf32c19224b866b56f63c3bd4a4&query=${encodeURIComponent(query)}`);
+        return response.json();
+      };
+
+      const getReviews = async () => {
+        try {
+          const response = await fetch('/api/reviews').catch(() => null);
+          if (response?.ok) return response.json();
+        } catch (e) {}
+        return JSON.parse(localStorage.getItem('flixa-reviews') || '[]');
+      };
+
+      const addReview = async (review) => {
+        try {
+          const response = await fetch('/api/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(review)
+          }).catch(() => null);
+          if (response?.ok) return response.json();
+        } catch (e) {}
+        const reviews = JSON.parse(localStorage.getItem('flixa-reviews') || '[]');
+        const newReview = { ...review, date: new Date().toISOString() };
+        reviews.unshift(newReview);
+        localStorage.setItem('flixa-reviews', JSON.stringify(reviews));
+        return newReview;
+      };
+
+      const addToRecentlyWatched = (show) => {
+        const recent = JSON.parse(localStorage.getItem('flixa-recently-watched') || '[]');
+        recent.unshift(show);
+        localStorage.setItem('flixa-recently-watched', JSON.stringify(recent));
+      };
+
+      const updateRecentlyWatchedTimestamp = (id, type) => {
+        const recent = JSON.parse(localStorage.getItem('flixa-recently-watched') || '[]');
+        const item = recent.find(r => r.id === id && r.type === type);
+        if (item) item.timestamp = Date.now();
+        localStorage.setItem('flixa-recently-watched', JSON.stringify(recent));
+      };
+
+      const config = {
+        tmdbApiKey: 'd1007bf32c19224b866b56f63c3bd4a4'
+      };
+
+      // ===== Remote Controller Class =====
+      class RemoteController {
+        constructor() {
+          this.focusedElement = null;
+          this.focusableElements = [];
+          this.focusIndex = 0;
+          this.init();
+        }
+
+        init() {
+          document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+          this.updateFocusableElements();
+        }
+
+        handleKeyPress(e) {
+          const key = e.key.toLowerCase();
+          
+          if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+            e.preventDefault();
+            this.navigate(key);
+            return;
+          }
+
+          if (key === 'enter' || key === ' ') {
+            e.preventDefault();
+            this.activate();
+            return;
+          }
+
+          if (key === 'escape') {
+            e.preventDefault();
+            this.closeModal();
+            return;
+          }
+        }
+
+        navigate(direction) {
+          this.updateFocusableElements();
+          if (this.focusableElements.length === 0) return;
+
+          switch (direction) {
+            case 'arrowright':
+              this.focusIndex = (this.focusIndex + 1) % this.focusableElements.length;
+              break;
+            case 'arrowleft':
+              this.focusIndex = (this.focusIndex - 1 + this.focusableElements.length) % this.focusableElements.length;
+              break;
+            case 'arrowdown':
+              this.focusIndex = Math.min(this.focusIndex + 3, this.focusableElements.length - 1);
+              break;
+            case 'arrowup':
+              this.focusIndex = Math.max(this.focusIndex - 3, 0);
+              break;
+          }
+
+          this.setFocus(this.focusIndex);
+        }
+
+        updateFocusableElements() {
+          const selector = `button, a, input, [tabindex]:not([tabindex="-1"]), .play-button, .save-button, .movie-card, .saved-show-item`;
+          const visible = Array.from(document.querySelectorAll(selector))
+            .filter(el => {
+              const rect = el.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0;
+            });
+          this.focusableElements = visible;
+        }
+
+        setFocus(index) {
+          if (index < 0 || index >= this.focusableElements.length) return;
+          if (this.focusedElement) this.focusedElement.classList.remove('remote-focused');
+          const element = this.focusableElements[index];
+          this.focusedElement = element;
+          this.focusIndex = index;
+          element.classList.add('remote-focused');
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        activate() {
+          if (!this.focusedElement) return;
+          this.focusedElement.click();
+        }
+
+        closeModal() {
+          const modals = document.querySelectorAll('[role="dialog"], .fixed.inset-0');
+          if (modals.length > 0) {
+            modals[modals.length - 1].remove?.() || modals[modals.length - 1].classList.add('hidden');
+          }
+        }
+      }
+
+      const remoteControl = new RemoteController();
 
       const header = document.getElementById('siteHeader');
       const mobileMenu = document.getElementById('mobileMenu');
