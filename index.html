@@ -2891,35 +2891,46 @@
 
         const remoteId = new URLSearchParams(window.location.search).get('remote');
         if (remoteId) {
-          // Show controller interface when ?remote=peerid parameter is present
-          controller.classList.remove('hidden');
-          controller.classList.add('flex');
-          document.body.classList.add('overflow-hidden');
-          // Hide main content when in remote mode
-          document.getElementById('siteHeader')?.classList.add('hidden');
-          document.getElementById('heroSection')?.classList.add('hidden');
-          document.getElementById('movies')?.classList.add('hidden');
+          // Remote mode: show full site but send all commands to desktop
           if (!window.Peer) {
-            connectionStatus.textContent = 'Cloud service unavailable';
+            console.error('Cloud service unavailable');
             return;
           }
           peer = new Peer();
           peer.on('open', () => {
             connection = peer.connect(remoteId, { reliable: true });
             connection.on('open', () => {
-              connectionStatus.textContent = 'Connected securely';
-              connectionStatus.classList.add('text-emerald-400');
+              console.log('Connected to desktop securely');
             });
             connection.on('close', () => {
-              connectionStatus.textContent = 'Screen disconnected';
-              connectionStatus.classList.remove('text-emerald-400');
+              console.log('Screen disconnected');
             });
-            connection.on('error', () => connectionStatus.textContent = 'Connection failed');
+            connection.on('error', () => console.error('Connection failed'));
           });
-          document.querySelectorAll('[data-remote-command]').forEach(button => {
-            button.addEventListener('click', () => {
-              if (connection?.open) connection.send({ command: button.dataset.remoteCommand });
+          
+          // Intercept all button clicks and send commands to desktop
+          document.addEventListener('click', (e) => {
+            const button = e.target.closest('button, a, [role="button"]');
+            if (!button || !connection?.open) return;
+            
+            // Send action to desktop
+            const action = button.dataset.remoteCommand || button.id || button.textContent;
+            connection.send({ 
+              command: 'action',
+              target: button.id,
+              action: action
             });
+          });
+          
+          // Intercept input changes
+          document.addEventListener('change', (e) => {
+            if (connection?.open && e.target.tagName === 'INPUT') {
+              connection.send({
+                command: 'input',
+                targetId: e.target.id,
+                value: e.target.value
+              });
+            }
           });
         }
 
