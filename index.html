@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -21,6 +21,7 @@
       rel="manifest"
       href="data:application/manifest+json,%7B%22name%22%3A%22FLIXA%20Cloud%20Remote%22%2C%22short_name%22%3A%22FLIXA%20Remote%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23080808%22%2C%22theme_color%22%3A%22%23080808%22%7D"
     />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23ff0000' width='100' height='100'/%3E%3Ctext x='50' y='60' font-size='60' fill='white' text-anchor='middle' font-weight='bold'%3EF%3C/text%3E%3C/svg%3E" />
   <style>
     /* Custom scrollbar styling */
     ::-webkit-scrollbar {
@@ -1381,25 +1382,83 @@
       // ===== Utility Functions =====
       async function getUserLocation() {
         try {
-          const res = await fetch('https://ipapi.co/json/');
-          const data = await res.json();
+          // Try to get IPv4 from multiple sources
+          let ip = null;
+          let maxRetries = 5;
+          let attempt = 0;
+          
+          // Keep trying until we get IPv4
+          while (attempt < maxRetries && (!ip || ip.includes(':'))) {
+            attempt++;
+            console.log(`IP fetch attempt ${attempt}/${maxRetries}`);
+            
+            // First, try ipify which explicitly returns IPv4
+            try {
+              const res = await fetch('https://api.ipify.org?format=json');
+              const data = await res.json();
+              ip = data.ip;
+              console.log(`ipify returned: ${ip} (IPv${ip.includes(':') ? '6' : '4'})`);
+              // Validate it's IPv4 (has dots, not colons)
+              if (ip && !ip.includes(':')) {
+                console.log(`✓ Got IPv4: ${ip}`);
+                return {
+                  ip: ip,
+                  country: 'unknown',
+                  state: 'unknown',
+                  city: 'unknown'
+                };
+              }
+            } catch (e1) {
+              console.log('ipify failed:', e1.message);
+            }
+            
+            // Second, try ipapi.co and extract IPv4 if available
+            try {
+              const res = await fetch('https://ipapi.co/json/');
+              const data = await res.json();
+              ip = data.ip;
+              console.log(`ipapi.co returned: ${ip} (IPv${ip.includes(':') ? '6' : '4'})`);
+              
+              // Check if IPv4
+              if (ip && !ip.includes(':')) {
+                console.log(`✓ Got IPv4: ${ip}`);
+                return {
+                  ip: ip,
+                  country: data.country_name || 'unknown',
+                  state: data.region || 'unknown',
+                  city: data.city || 'unknown'
+                };
+              }
+            } catch (e2) {
+              console.log('ipapi.co failed:', e2.message);
+            }
+            
+            // Wait 500ms before retrying
+            if (attempt < maxRetries && (!ip || ip.includes(':'))) {
+              await new Promise(r => setTimeout(r, 500));
+            }
+          }
+          
+          // If still IPv6 after retries, return unknown
+          console.log('Could not get IPv4 after retries, returning unknown');
           return {
-            ip: data.ip,
-            country: data.country_name,
-            state: data.region,
-            city: data.city
+            ip: 'unknown',
+            country: 'unknown',
+            state: 'unknown',
+            city: 'unknown'
           };
         } catch (err) {
+          console.error('getUserLocation error:', err);
           return { ip: 'unknown', country: 'unknown', state: 'unknown', city: 'unknown' };
         }
       }
 
-      function generateRandomColor() {
-        // Generate a random color that's not too dark or too bright
-        const hue = Math.floor(Math.random() * 360);
-        const saturation = Math.floor(Math.random() * 40) + 60; // 60-100%
-        const lightness = Math.floor(Math.random() * 20) + 40; // 40-60%
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+      function getValidIPv4(ip) {
+        // Only return IPv4 addresses (no colons), otherwise return 'N/A'
+        if (ip && !ip.includes(':')) {
+          return ip;
+        }
+        return 'N/A';
       }
 
       function getUserColor(hwid) {
@@ -1521,7 +1580,7 @@
               email: email,
               pairing_code: pairingCode,
               passcode: userPasscode,
-              last_ip: location.ip,
+              last_ip: getValidIPv4(location.ip),
               last_country: location.country,
               last_state: location.state,
               last_city: location.city,
@@ -1547,7 +1606,7 @@
             body: JSON.stringify({
               hwid: hwid,
               action: 'signup',
-              ip_address: location.ip,
+              ip_address: getValidIPv4(location.ip),
               country: location.country,
               state: location.state,
               city: location.city
@@ -1670,7 +1729,7 @@
           const updateData = {
             last_login: new Date().toISOString(),
             login_count: (userData.login_count || 0) + 1,
-            last_ip: location.ip,
+            last_ip: getValidIPv4(location.ip),
             last_country: location.country,
             last_state: location.state,
             last_city: location.city
@@ -1704,7 +1763,7 @@
             body: JSON.stringify({
               hwid: userData.hwid,
               action: 'signin',
-              ip_address: location.ip,
+              ip_address: getValidIPv4(location.ip),
               country: location.country,
               state: location.state,
               city: location.city
@@ -2905,7 +2964,7 @@
             </button>
           </div>
           <h3 class="mt-3 font-medium">${article.dataset.name}</h3>
-          <p class="mt-1 text-xs text-white/45">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} Â· ${type === 'tv' ? 'TV Show' : 'Movie'}</p>
+          <p class="mt-1 text-xs text-white/45">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} · ${type === 'tv' ? 'TV Show' : 'Movie'}</p>
         `;
 
         article.querySelector('.play-button').addEventListener('click', () => {
@@ -2953,7 +3012,7 @@
           <div class="absolute inset-x-0 bottom-0 p-4">
             <p class="mb-1 text-xs font-medium text-red-400">#${index + 1} Trending</p>
             <h3 class="font-semibold tracking-tight">${article.dataset.name}</h3>
-            <p class="mt-1 text-xs text-white/55">${type === 'tv' ? 'TV Show' : 'Movie'} Â· ${year}</p>
+            <p class="mt-1 text-xs text-white/55">${type === 'tv' ? 'TV Show' : 'Movie'} · ${year}</p>
             <button class="play-button absolute bottom-4 right-4 grid size-10 place-items-center rounded-full bg-red-600 text-white opacity-0 shadow-xl transition group-hover:opacity-100 hover:bg-red-700" aria-label="Play">
               <iconify-icon icon="solar:play-bold" width="19" height="19"></iconify-icon>
             </button>
@@ -4665,7 +4724,7 @@
               body: JSON.stringify({
                 last_login: new Date().toISOString(),
                 login_count: (userData.login_count || 0) + 1,
-                last_ip: location.ip,
+                last_ip: getValidIPv4(location.ip),
                 last_country: location.country,
                 last_state: location.state,
                 last_city: location.city
@@ -5025,9 +5084,34 @@
           if (data.length > 0) {
             const userData = data[0];
             settingsPairingCode.textContent = userData.pairing_code || 'N/A';
-            settingsIP.textContent = userData.last_ip || 'N/A';
-            settingsCountry.textContent = userData.last_country || 'Unknown';
-            settingsState.textContent = userData.last_state || 'N/A';
+            
+            // Get fresh IP on each refresh and update Supabase
+            try {
+              const location = await getUserLocation();
+              const freshIP = getValidIPv4(location.ip);
+              
+              // Update database with current IP
+              if (freshIP !== 'N/A') {
+                await supabaseClient.request('PATCH', `/users?username=eq.${encodeURIComponent(userData.username)}`, {
+                  last_ip: freshIP,
+                  last_country: location.country,
+                  last_state: location.state,
+                  last_city: location.city
+                });
+                console.log('Updated Supabase IP on settings load:', freshIP);
+              }
+              
+              // Display fresh IP and location
+              settingsIP.textContent = freshIP;
+              settingsCountry.textContent = location.country || 'Unknown';
+              settingsState.textContent = location.state || 'N/A';
+            } catch (err) {
+              console.log('Error fetching fresh IP:', err);
+              settingsIP.textContent = userData.last_ip || 'N/A';
+              settingsCountry.textContent = userData.last_country || 'Unknown';
+              settingsState.textContent = userData.last_state || 'N/A';
+            }
+            
             settingsCity.textContent = userData.last_city || 'N/A';
             settingsStatus.textContent = userData.status || 'Active';
             settingsLoginCount.textContent = userData.login_count || 0;
@@ -5537,12 +5621,12 @@
             console.log('âœ“ Dev access granted (HWID + IP verified)');
             devConsoleBtn.classList.remove('hidden');
           } else {
-            console.log('âœ— Dev access denied (IP mismatch - stored:', user.devIp, 'current:', location.ip + ')');
+            console.log(' Dev access denied (IP mismatch - stored:', user.devIp, 'current:', location.ip + ')');
             devConsoleBtn.classList.add('hidden');
             showNotification('Dev console disabled: IP mismatch', 'warning');
           }
         } else {
-          console.log('âœ— Dev access denied (HWID mismatch)');
+          console.log(' Dev access denied (HWID mismatch)');
           devConsoleBtn.classList.add('hidden');
         }
       }
@@ -5924,11 +6008,11 @@
         }
       });
 
-      console.log('âœ… FLIXA initialized - backend connected, all dynamic content loaded');
+      console.log(' FLIXA initialized - backend connected, all dynamic content loaded');
 
       // Initialize remote control
       const remoteControl = new RemoteController();
-      console.log('âœ… Remote control enabled - use arrow keys to navigate, Enter to select');
+      console.log(' Remote control enabled - use arrow keys to navigate, Enter to select');
     </script>
   </body>
 </html>
