@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -19,12 +19,18 @@
     <meta name="apple-mobile-web-app-title" content="FLIXA Remote" />
     <link
       rel="manifest"
-      href="site.webmanifest"
+      href="icons/site.webmanifest"
     />
     <link rel="icon" type="image/x-icon" href="icons/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <style>
+    /* Header - fully transparent */
+    #siteHeader {
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    
     /* Custom scrollbar styling */
     ::-webkit-scrollbar {
       width: 12px;
@@ -399,7 +405,7 @@
     <div id="mainContentWrapper" class="transition-all duration-300">
       <header
         id="siteHeader"
-        class="fixed inset-x-0 top-0 z-40 transition-all duration-300 border-b border-transparent"
+        class="fixed inset-x-0 top-0 z-40 transition-all duration-300"
       >
         <div
           class="mx-auto flex h-16 max-w-[1600px] items-center gap-5 px-4 sm:h-20 sm:px-6 lg:px-10"
@@ -2123,8 +2129,6 @@
       window.addEventListener('scroll', () => {
         header.classList.toggle('bg-black/90', window.scrollY > 20);
         header.classList.toggle('backdrop-blur-xl', window.scrollY > 20);
-        header.classList.toggle('border-b', window.scrollY > 20);
-        header.classList.toggle('border-white/10', window.scrollY > 20);
       });
 
       mobileMenuButton.addEventListener('click', () => {
