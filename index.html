@@ -1386,6 +1386,7 @@
           let ip = null;
           let maxRetries = 5;
           let attempt = 0;
+          let locationData = { country_name: 'Unknown', region: 'Unknown', city: 'Unknown' };
           
           // Keep trying until we get IPv4
           while (attempt < maxRetries && (!ip || ip.includes(':'))) {
@@ -1401,11 +1402,26 @@
               // Validate it's IPv4 (has dots, not colons)
               if (ip && !ip.includes(':')) {
                 console.log(`✓ Got IPv4: ${ip}`);
+                // Now get location data for this IP
+                try {
+                  const locRes = await fetch(`https://ipapi.co/${ip}/json/`);
+                  const locData = await locRes.json();
+                  console.log('Full location data:', locData);
+                  locationData = {
+                    country_name: locData.country_name || 'Unknown',
+                    region: locData.region || 'Unknown',
+                    city: locData.city || 'Unknown'
+                  };
+                  console.log(`Got location: ${locationData.city}, ${locationData.region}, ${locationData.country_name}`);
+                } catch (e) {
+                  console.log('Error fetching location data:', e.message);
+                }
+                
                 return {
                   ip: ip,
-                  country: 'unknown',
-                  state: 'unknown',
-                  city: 'unknown'
+                  country: locationData.country_name,
+                  state: locationData.region,
+                  city: locationData.city
                 };
               }
             } catch (e1) {
@@ -1424,9 +1440,9 @@
                 console.log(`✓ Got IPv4: ${ip}`);
                 return {
                   ip: ip,
-                  country: data.country_name || 'unknown',
-                  state: data.region || 'unknown',
-                  city: data.city || 'unknown'
+                  country: data.country_name || 'Unknown',
+                  state: data.region || 'Unknown',
+                  city: data.city || 'Unknown'
                 };
               }
             } catch (e2) {
@@ -1443,13 +1459,13 @@
           console.log('Could not get IPv4 after retries, returning unknown');
           return {
             ip: 'unknown',
-            country: 'unknown',
-            state: 'unknown',
-            city: 'unknown'
+            country: 'Unknown',
+            state: 'Unknown',
+            city: 'Unknown'
           };
         } catch (err) {
           console.error('getUserLocation error:', err);
-          return { ip: 'unknown', country: 'unknown', state: 'unknown', city: 'unknown' };
+          return { ip: 'unknown', country: 'Unknown', state: 'Unknown', city: 'Unknown' };
         }
       }
 
