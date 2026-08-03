@@ -197,6 +197,19 @@
       animation: slideInUp 0.3s ease-out;
     }
 
+    #adBlockerModal {
+      display: none;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    #adBlockerModal:not(.hidden) {
+      display: flex;
+      pointer-events: auto;
+      opacity: 1;
+      animation: slideInUp 0.3s ease-out;
+    }
+
     #adminPanel:not(.hidden) {
       animation: fadeInScale 0.3s ease-out;
     }
@@ -876,6 +889,68 @@
         <div class="flex gap-3">
           <button id="customConfirmCancel" class="flex-1 rounded-lg bg-white/10 hover:bg-white/20 text-white py-3 font-semibold transition">Cancel</button>
           <button id="customConfirmOk" class="flex-1 rounded-lg bg-red-500 hover:bg-red-600 text-white py-3 font-semibold transition">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ad Blocker Recommendation Modal -->
+    <div id="adBlockerModal" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/80 p-4 backdrop-blur-lg">
+      <div class="w-full max-w-md rounded-2xl border border-white/10 bg-[#151515] p-6 shadow-2xl">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <iconify-icon icon="solar:shield-bold" width="24" height="24" class="text-blue-400"></iconify-icon>
+          </div>
+          <h2 class="text-xl font-semibold text-white">Use an Ad Blocker</h2>
+        </div>
+        <p class="text-sm text-white/80 mb-4">We recommend using an ad blocker for a cleaner streaming experience. Here are some free options:</p>
+        
+        <!-- Ad Blocker Links -->
+        <div class="space-y-2 mb-6">
+          <!-- Windows -->
+          <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh?pli=1" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/10 hover:border-blue-500/30">
+            <div class="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <iconify-icon icon="solar:monitor-bold" width="18" height="18" class="text-blue-400"></iconify-icon>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-white">uBlock Origin Lite (Windows)</p>
+              <p class="text-xs text-white/60">Chrome Web Store</p>
+            </div>
+            <iconify-icon icon="solar:arrow-right-linear" width="16" height="16" class="text-white/40"></iconify-icon>
+          </a>
+          
+          <!-- iOS -->
+          <a href="https://apps.apple.com/app/adblock-for-safari/id1478061618" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/10 hover:border-blue-500/30">
+            <div class="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <iconify-icon icon="solar:smartphone-bold" width="18" height="18" class="text-blue-400"></iconify-icon>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-white">Adblock for Safari (iOS)</p>
+              <p class="text-xs text-white/60">App Store</p>
+            </div>
+            <iconify-icon icon="solar:arrow-right-linear" width="16" height="16" class="text-white/40"></iconify-icon>
+          </a>
+          
+          <!-- Android -->
+          <a href="https://play.google.com/store/apps/details?id=com.getdelta" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/10 hover:border-blue-500/30">
+            <div class="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <iconify-icon icon="solar:smartphone-bold" width="18" height="18" class="text-blue-400"></iconify-icon>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-white">Delta (Android)</p>
+              <p class="text-xs text-white/60">Play Store</p>
+            </div>
+            <iconify-icon icon="solar:arrow-right-linear" width="16" height="16" class="text-white/40"></iconify-icon>
+          </a>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button id="adBlockerCancel" class="flex-1 rounded-lg bg-white/10 hover:bg-white/20 text-white py-3 font-semibold transition">
+            Cancel
+          </button>
+          <button id="adBlockerGotIt" class="flex-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white py-3 font-semibold transition">
+            Got It
+          </button>
         </div>
       </div>
     </div>
@@ -4051,6 +4126,38 @@
         }, 3000);
       }
 
+      // Ad Blocker Modal Functions
+      function showAdBlockerModalIfNeeded() {
+        const adBlockerDismissed = localStorage.getItem('adBlocker-dismissed');
+        if (!adBlockerDismissed) {
+          const modal = document.getElementById('adBlockerModal');
+          modal.classList.remove('hidden');
+        }
+      }
+
+      // Set up ad blocker modal listeners
+      document.addEventListener('DOMContentLoaded', () => {
+        const adBlockerModal = document.getElementById('adBlockerModal');
+        const adBlockerGotIt = document.getElementById('adBlockerGotIt');
+        const adBlockerCancel = document.getElementById('adBlockerCancel');
+
+        if (adBlockerGotIt) {
+          adBlockerGotIt.addEventListener('click', () => {
+            // Mark as dismissed and hide modal
+            localStorage.setItem('adBlocker-dismissed', 'true');
+            adBlockerModal.classList.add('hidden');
+            showNotification('Got it! Ad blocker recommendations saved', 'success');
+          });
+        }
+
+        if (adBlockerCancel) {
+          adBlockerCancel.addEventListener('click', () => {
+            // Just hide modal, don't mark as dismissed - will show again next login
+            adBlockerModal.classList.add('hidden');
+          });
+        }
+      });
+
       // Custom Alert
       function customAlert(message, title = 'Alert') {
         return new Promise(resolve => {
@@ -4963,6 +5070,11 @@
               isSignupMode ? 'Account created successfully!' : 'Logged in successfully!', 
               'success'
             );
+            
+            // Show ad blocker modal if user hasn't dismissed it
+            setTimeout(() => {
+              showAdBlockerModalIfNeeded();
+            }, 500);
           }
         } catch (error) {
           console.error('Auth error:', error);
