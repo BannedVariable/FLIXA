@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -17,13 +17,7 @@
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="FLIXA Remote" />
-    <link
-      rel="manifest"
-      href="icons/site.webmanifest"
-    />
-    <link rel="icon" type="image/x-icon" href="icons/favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23ff0000' width='100' height='100'/><text x='50' y='70' font-size='60' fill='white' text-anchor='middle' font-weight='bold'>F</text></svg>" />
   <style>
     /* Header - fully transparent */
     #siteHeader {
@@ -501,7 +495,7 @@
 
       <section
         id="home"
-        class="relative min-h-[82vh] overflow-hidden sm:min-h-screen"
+        class="relative min-h-screen overflow-hidden -mt-20"
       >
         <img
           src="https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg"
@@ -519,7 +513,7 @@
         ></div>
 
         <div
-          class="relative mx-auto flex min-h-[82vh] max-w-[1600px] items-end px-4 pb-24 pt-28 sm:min-h-screen sm:items-center sm:px-6 sm:pb-32 lg:px-10"
+          class="relative mx-auto flex min-h-screen max-w-[1600px] items-end px-4 pb-24 sm:items-center sm:px-6 sm:pb-32 lg:px-10"
         >
           <div class="max-w-2xl">
             <div class="mb-5 flex items-center gap-3">
@@ -2975,8 +2969,8 @@
           : 'https://via.placeholder.com/342x513?text=No+Poster';
 
         article.innerHTML = `
-          <div class="relative overflow-hidden rounded-2xl bg-white/5">
-            <img src="${posterUrl}" alt="${article.dataset.name}" class="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-105 rounded-2xl" />
+          <div class="relative overflow-hidden bg-white/5">
+            <img src="${posterUrl}" alt="${article.dataset.name}" class="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-105" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
             <button class="play-button absolute bottom-3 right-3 grid size-10 place-items-center rounded-full bg-red-600 text-white shadow-xl transition hover:scale-105 hover:bg-red-700 opacity-0 group-hover:opacity-100" aria-label="Play">
               <iconify-icon icon="solar:play-bold" width="19" height="19"></iconify-icon>
