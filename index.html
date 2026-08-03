@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,7 +7,7 @@
       name="description"
       content="Stream free, openly licensed films without an account."
     />
-    <title>FLIXA — Free Streaming</title>
+    <title>FLIXA â€” Free Streaming</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <meta name="theme-color" content="#080808" />
@@ -1569,19 +1569,8 @@
           const location = await getUserLocation();
           const hwid = getOrGenerateHWID();
 
-          // CHECK IP BAN FIRST
-          const ipBanCheck = await fetch(`${BACKEND_URL}/api/check-ip-ban`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ip: location.ip })
-          });
+          // No backend - check IP ban is skipped, go straight to Supabase
           
-          const ipBanData = await ipBanCheck.json();
-          if (ipBanData.banned) {
-            console.log('IP is banned:', location.ip);
-            return { error: 'banned', reason: `Your IP (${location.ip}) has been banned. Contact support if you believe this is an error.` };
-          }
-
           // Extract username from email if email is in format username@flixa.local
           let usernameToSearch = email;
           if (email.includes('@flixa.local')) {
@@ -1819,7 +1808,7 @@
       };
 
       // ===== Backend Configuration =====
-      const BACKEND_URL = 'https://flixa-backend-production.up.railway.app';
+      // Backend removed - using Supabase only
       const DEV_HWID = '646174613a696d6167652f706e673b6261736536342c6956424f5277304b4767';
 
       // ===== Supabase Universal Reviews (reuse auth constants) =====
@@ -2551,7 +2540,7 @@
             <div class="bg-gray-900 rounded-xl border border-white/20 max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
               <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-white">Play on Device</h2>
-                <button class="close-device-modal text-white/60 hover:text-white text-2xl">×</button>
+                <button class="close-device-modal text-white/60 hover:text-white text-2xl">Ã—</button>
               </div>
 
               <!-- Paired Devices List -->
@@ -2928,7 +2917,7 @@
             </button>
           </div>
           <h3 class="mt-3 font-medium">${article.dataset.name}</h3>
-          <p class="mt-1 text-xs text-white/45">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} · ${type === 'tv' ? 'TV Show' : 'Movie'}</p>
+          <p class="mt-1 text-xs text-white/45">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} Â· ${type === 'tv' ? 'TV Show' : 'Movie'}</p>
         `;
 
         article.querySelector('.play-button').addEventListener('click', () => {
@@ -2976,7 +2965,7 @@
           <div class="absolute inset-x-0 bottom-0 p-4">
             <p class="mb-1 text-xs font-medium text-red-400">#${index + 1} Trending</p>
             <h3 class="font-semibold tracking-tight">${article.dataset.name}</h3>
-            <p class="mt-1 text-xs text-white/55">${type === 'tv' ? 'TV Show' : 'Movie'} · ${year}</p>
+            <p class="mt-1 text-xs text-white/55">${type === 'tv' ? 'TV Show' : 'Movie'} Â· ${year}</p>
             <button class="play-button absolute bottom-4 right-4 grid size-10 place-items-center rounded-full bg-red-600 text-white opacity-0 shadow-xl transition group-hover:opacity-100 hover:bg-red-700" aria-label="Play">
               <iconify-icon icon="solar:play-bold" width="19" height="19"></iconify-icon>
             </button>
@@ -4044,7 +4033,7 @@
           icon.className = 'grid size-16 place-items-center rounded-xl bg-red-400/10 text-red-300';
           title.textContent = 'Account Banned';
           reasonEl.textContent = reason || 'Your account has been banned from FLIXA.';
-          typeEl.textContent = '⛔ This ban is permanent.';
+          typeEl.textContent = 'â›” This ban is permanent.';
           timeEl.textContent = '';
           noteEl.textContent = reason || 'Contact support for more information.';
         } else if (status === 'suspended') {
@@ -4052,7 +4041,7 @@
           icon.className = 'grid size-16 place-items-center rounded-xl bg-yellow-400/10 text-yellow-300';
           title.textContent = 'Account Suspended';
           reasonEl.textContent = reason || 'Your account has been suspended.';
-          typeEl.textContent = '⏸️ Permanent suspension - waiting for admin review.';
+          typeEl.textContent = 'â¸ï¸ Permanent suspension - waiting for admin review.';
           timeEl.textContent = '';
           noteEl.textContent = reason || 'Please contact support.';
         } else if (status === 'timeout') {
@@ -4060,7 +4049,7 @@
           icon.className = 'grid size-16 place-items-center rounded-xl bg-orange-400/10 text-orange-300';
           title.textContent = 'Account In Timeout';
           reasonEl.textContent = reason || 'Your account is temporarily in timeout.';
-          typeEl.textContent = '⏳ Temporary timeout';
+          typeEl.textContent = 'â³ Temporary timeout';
           timeEl.textContent = timeRemaining ? `Time remaining: ${timeRemaining}` : '';
           noteEl.textContent = reason || 'Please wait for the timeout period to expire.';
         }
@@ -5293,7 +5282,7 @@
         console.log('Checking existing login:', user);
         
         if (user && user.authenticated) {
-          console.log('✓ User found and authenticated:', user.username);
+          console.log('âœ“ User found and authenticated:', user.username);
           updateProfileUI(true, user.username);
           // Set default colors for profile elements
           const hwid = getOrGenerateHWID();
@@ -5557,15 +5546,15 @@
           
           // Verify IP hasn't changed
           if (location.ip === user.devIp) {
-            console.log('✓ Dev access granted (HWID + IP verified)');
+            console.log('âœ“ Dev access granted (HWID + IP verified)');
             devConsoleBtn.classList.remove('hidden');
           } else {
-            console.log('✗ Dev access denied (IP mismatch - stored:', user.devIp, 'current:', location.ip + ')');
+            console.log('âœ— Dev access denied (IP mismatch - stored:', user.devIp, 'current:', location.ip + ')');
             devConsoleBtn.classList.add('hidden');
             showNotification('Dev console disabled: IP mismatch', 'warning');
           }
         } else {
-          console.log('✗ Dev access denied (HWID mismatch)');
+          console.log('âœ— Dev access denied (HWID mismatch)');
           devConsoleBtn.classList.add('hidden');
         }
       }
@@ -5798,28 +5787,13 @@
 
           // If banning, also IP ban the user
           if (newStatus === 'banned' && user.last_ip) {
-            console.log('IP banning:', user.last_ip);
-            await fetch(`${BACKEND_URL}/api/ban-ip`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                ip: user.last_ip,
-                username: user.username,
-                reason: reason || 'User account banned'
-              })
-            });
+            console.log('User banned');
           }
 
           // If unsuspending from banned, also unban the IP
           if (newStatus !== 'banned' && user.status === 'banned' && user.last_ip) {
             console.log('IP unbanning:', user.last_ip);
-            await fetch(`${BACKEND_URL}/api/unban-ip`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                ip: user.last_ip
-              })
-            });
+            
           }
 
           const res = await fetch(
@@ -5854,7 +5828,7 @@
       };
 
       window.adminDeleteAccount = async function(hwid, username) {
-        const confirmDeletion = confirm(`⚠️ PERMANENT DELETION\n\nAre you absolutely sure you want to delete this account?\n\nUser: ${username}\nHWID: ${hwid.substring(0, 16)}...\n\nThis will:\n• Remove all profile data\n• Delete all saved shows\n• Clear all user history\n• IP unban the user\n\nThis CANNOT be undone!`);
+        const confirmDeletion = confirm(`âš ï¸ PERMANENT DELETION\n\nAre you absolutely sure you want to delete this account?\n\nUser: ${username}\nHWID: ${hwid.substring(0, 16)}...\n\nThis will:\nâ€¢ Remove all profile data\nâ€¢ Delete all saved shows\nâ€¢ Clear all user history\nâ€¢ IP unban the user\n\nThis CANNOT be undone!`);
         
         if (!confirmDeletion) return;
 
@@ -5872,13 +5846,7 @@
           // If user was banned, unban their IP
           if (user.status === 'banned' && user.last_ip) {
             console.log('IP unbanning during account deletion:', user.last_ip);
-            await fetch(`${BACKEND_URL}/api/unban-ip`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                ip: user.last_ip
-              })
-            });
+            
           }
 
           // Delete from Supabase - this will cascade delete saved_shows due to foreign key
@@ -5968,11 +5936,11 @@
         }
       });
 
-      console.log('✅ FLIXA initialized - backend connected, all dynamic content loaded');
+      console.log('âœ… FLIXA initialized - backend connected, all dynamic content loaded');
 
       // Initialize remote control
       const remoteControl = new RemoteController();
-      console.log('✅ Remote control enabled - use arrow keys to navigate, Enter to select');
+      console.log('âœ… Remote control enabled - use arrow keys to navigate, Enter to select');
     </script>
   </body>
 </html>
