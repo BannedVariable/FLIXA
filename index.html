@@ -1827,7 +1827,11 @@
           
           const response = await fetch(`${SUPABASE_URL}/rest/v1${endpoint}`, options);
           if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
-          return response.json();
+          
+          // Handle empty responses (204 No Content or empty body)
+          const text = await response.text();
+          if (!text) return [];
+          return JSON.parse(text);
         }
       };
 
@@ -2373,17 +2377,7 @@
           
           if (statsRes && statsRes.length > 0) {
             const currentStats = statsRes[0];
-            
-            // Parse watched items from database
-            let watchedItems = {};
-            try {
-              watchedItems = currentStats.watched_items ? JSON.parse(currentStats.watched_items) : {};
-            } catch (e) {
-              console.log('Could not parse watched_items:', e);
-              watchedItems = {};
-            }
-            
-            const contentKey = `${mediaType}-${show.id}`;
+            console.log('Current stats:', currentStats);
             
             const updateData = {
               last_watched_title: title,
@@ -2391,38 +2385,39 @@
               last_watched_date: new Date().toISOString()
             };
             
-            // Check if content was already watched
-            if (!watchedItems[contentKey]) {
-              // First time watching - increment count
-              watchedItems[contentKey] = true;
-              
-              if (mediaType === 'movie') {
-                updateData.total_movies_watched = (currentStats.total_movies_watched || 0) + 1;
-              } else {
-                updateData.total_shows_watched = (currentStats.total_shows_watched || 0) + 1;
-              }
-              
-              console.log('Content count updated:', updateData);
+            // Increment count based on type
+            if (mediaType === 'movie') {
+              updateData.total_movies_watched = (currentStats.total_movies_watched || 0) + 1;
             } else {
-              console.log('Already watched:', contentKey);
+              updateData.total_shows_watched = (currentStats.total_shows_watched || 0) + 1;
             }
-            
-            // Always save watched items
-            updateData.watched_items = JSON.stringify(watchedItems);
             
             console.log('Sending update to database:', updateData);
             const patchRes = await supabaseClient.request('PATCH', `/user_stats?username=eq.${encodeURIComponent(userData.username)}`, updateData);
             console.log('Patch response:', patchRes);
+            console.log('✅ Stats updated successfully');
             
             // Refresh settings display if open
             if (!settingsModal.classList.contains('hidden')) {
+              console.log('Refreshing settings display');
               await loadSettingsUserInfo();
             }
           } else {
-            console.log('No stats found for user:', userData.username);
+            console.log('No stats found for user:', userData.username, '- Creating stats record');
+            // Create stats if doesn't exist
+            const createRes = await supabaseClient.request('POST', '/user_stats', {
+              username: userData.username,
+              total_movies_watched: mediaType === 'movie' ? 1 : 0,
+              total_shows_watched: mediaType === 'show' ? 1 : 0,
+              total_playtime_minutes: 0,
+              last_watched_title: title,
+              last_watched_type: mediaType,
+              last_watched_date: new Date().toISOString()
+            });
+            console.log('Created stats record:', createRes);
           }
         } catch (err) {
-          console.log('Error tracking watch event:', err);
+          console.error('Error tracking watch event:', err);
         }
       }
 
@@ -2471,16 +2466,9 @@
               </button>
             </div>
 
-            <!-- Server Badge and Device Button -->
-            <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
-              <span class="inline-flex items-center gap-2 rounded-full border border-red-500/60 bg-red-500/20 px-4 py-1.5 text-xs font-semibold text-red-200">
-                <span class="relative flex size-2">
-                  <span class="absolute inline-flex size-full animate-pulse rounded-full bg-red-400 opacity-75"></span>
-                  <span class="relative inline-flex size-2 rounded-full bg-red-500"></span>
-                </span>
-                ${server.toUpperCase()}
-              </span>
-              <button id="playOnDeviceBtn" class="inline-flex items-center gap-2 rounded-full border border-blue-500/60 bg-blue-500/20 px-3 py-1.5 text-xs font-semibold text-blue-200 hover:bg-blue-500/30 transition-colors cursor-pointer">
+            <!-- Play on Device Button -->
+            <div class="absolute top-4 left-4 z-10">
+              <button id="playOnDeviceBtn" class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:bg-white/10 hover:border-white/30 transition-all cursor-pointer">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14l4 4V5c0-1.1-.9-2-2-2zm-2 12h-8v-2h8v2zm0-4h-8V9h8v2z"/></svg>
                 Play on Device
               </button>
@@ -2537,10 +2525,10 @@
           const pairedDevices = devicesRes && devicesRes.length > 0 ? devicesRes : [];
 
           deviceModal.innerHTML = `
-            <div class="bg-gray-900 rounded-xl border border-white/20 max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div style="background-color: #1a1a1a; border: 1px solid rgba(255,255,255,0.1);" class="rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
               <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-white">Play on Device</h2>
-                <button class="close-device-modal text-white/60 hover:text-white text-2xl">Ã—</button>
+                <button class="close-device-modal text-white/60 hover:text-white text-2xl leading-none">×</button>
               </div>
 
               <!-- Paired Devices List -->
@@ -2549,7 +2537,7 @@
                 ${pairedDevices.length > 0 ? `
                   <div class="space-y-2">
                     ${pairedDevices.map(device => `
-                      <button class="send-to-device w-full text-left p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all" data-device-id="${device.id}">
+                      <button class="send-to-device w-full text-left p-3 rounded-lg transition-all" style="border: 1px solid rgba(255,255,255,0.1); background-color: rgba(255,255,255,0.05);" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'" data-device-id="${device.id}">
                         <div class="flex justify-between items-center">
                           <div>
                             <p class="text-sm font-semibold text-white">${device.device_name}</p>
@@ -2558,23 +2546,23 @@
                               ${device.is_active ? 'Active' : 'Inactive'}
                             </p>
                           </div>
-                          <svg class="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14l4 4V5c0-1.1-.9-2-2-2zm-2 12h-8v-2h8v2zm0-4h-8V9h8v2z"/></svg>
+                          <svg class="w-5 h-5 text-white/40" fill="currentColor" viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14l4 4V5c0-1.1-.9-2-2-2zm-2 12h-8v-2h8v2zm0-4h-8V9h8v2z"/></svg>
                         </div>
                       </button>
                     `).join('')}
                   </div>
                 ` : `
-                  <p class="text-sm text-white/60 mb-3">No paired devices yet</p>
+                  <p class="text-sm text-white/60">No paired devices yet</p>
                 `}
               </div>
 
               <!-- Pair New Device -->
-              <div class="border-t border-white/10 pt-4">
+              <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
                 <h3 class="text-sm font-semibold text-white/80 mb-3">Pair New Device</h3>
-                <div class="space-y-2">
-                  <input type="text" id="pairingCodeInput" placeholder="Enter pairing code" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 focus:border-blue-500 focus:bg-white/[0.15] text-white placeholder:text-white/50 text-sm outline-none transition-colors">
-                  <button id="pairDeviceBtn" class="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M14 6l-3.732 5.732L9 10H5v2h4l2.268-3.268L14 14h5v-2h-5l-.732-1.268L19 6h-5zm0 0"></path></svg>
+                <div class="space-y-3">
+                  <input type="text" id="pairingCodeInput" placeholder="Enter pairing code" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;" class="w-full px-3 py-2 rounded-lg text-sm placeholder:text-white/50 outline-none" onfocus="this.style.borderColor='rgba(255,255,255,0.4)'; this.style.backgroundColor='rgba(255,255,255,0.15)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'; this.style.backgroundColor='rgba(255,255,255,0.1)'">
+                  <button id="pairDeviceBtn" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2); this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'" class="w-full px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
                     Pair Device
                   </button>
                 </div>
