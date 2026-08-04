@@ -2072,6 +2072,11 @@
           if (!e || !e.key) return;
           const key = e.key.toLowerCase();
           
+          // Don't intercept spacebar if inside an iframe (video player)
+          if (key === ' ' && (document.activeElement?.tagName === 'IFRAME' || document.querySelector('iframe:focus'))) {
+            return;
+          }
+          
           if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
             e.preventDefault();
             this.navigate(key);
