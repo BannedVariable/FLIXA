@@ -2072,8 +2072,8 @@
           if (!e || !e.key) return;
           const key = e.key.toLowerCase();
           
-          // Don't intercept spacebar if inside an iframe (video player)
-          if (key === ' ' && (document.activeElement?.tagName === 'IFRAME' || document.querySelector('iframe:focus'))) {
+          // Never intercept spacebar - let it work for video controls naturally
+          if (key === ' ') {
             return;
           }
           
@@ -2083,7 +2083,7 @@
             return;
           }
 
-          if (key === 'enter' || key === ' ') {
+          if (key === 'enter') {
             e.preventDefault();
             this.activate();
             return;
