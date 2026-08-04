@@ -3155,6 +3155,9 @@
           const releaseDate = type === 'tv' ? movie.first_air_date : movie.release_date;
           const year = releaseDate ? releaseDate.split('-')[0] : 'N/A';
           
+          // Auto-detect if it's actually a TV show based on TMDB data
+          const isTV = type === 'tv' || details.number_of_seasons || details.number_of_episodes;
+          
           const modal = document.createElement('div');
           modal.className = 'fixed inset-0 z-[95] flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto';
           modal.innerHTML = `
@@ -3182,7 +3185,7 @@
                     <p class="text-sm text-white/50 mb-4">${movie.tagline || ''}</p>
                     
                     <div class="flex flex-wrap gap-2 mb-4">
-                      <span class="px-3 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-200 text-xs font-semibold">${type === 'tv' ? 'TV Series' : 'Movie'}</span>
+                      <span class="px-3 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-200 text-xs font-semibold">${isTV ? 'TV Series' : 'Movie'}</span>
                       <span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white/70 text-xs">${year}</span>
                       ${movie.runtime ? `<span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white/70 text-xs">${movie.runtime} min</span>` : ''}
                       ${details.genres && details.genres.length > 0 ? `<span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white/70 text-xs">${details.genres.map(g => g.name).join(', ')}</span>` : ''}
@@ -3269,7 +3272,7 @@
                   </div>
                 </div>
 
-                ${type === 'tv' ? `
+                ${isTV ? `
                   <!-- Season and Episode Selection for TV Shows -->
                   <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
@@ -3322,18 +3325,18 @@
             const server = modal.querySelector('.server-btn.active').dataset.server;
             let season = null, episode = null;
             
-            if (type === 'tv') {
+            if (isTV) {
               season = parseInt(modal.querySelector('.season-select-btn').dataset.value) || 1;
               episode = parseInt(modal.querySelector('.episode-select-btn').dataset.value) || 1;
               console.log('TV Show selected - Season:', season, 'Episode:', episode);
             }
             
-            showWatchPrompt({ id: movie.id, type, title: movie.title || movie.name, poster: posterUrl }, server, season, episode);
+            showWatchPrompt({ id: movie.id, type: isTV ? 'tv' : 'movie', title: movie.title || movie.name, poster: posterUrl }, server, season, episode);
             modal.remove();
           });
 
           // Custom dropdown handlers for TV shows
-          if (type === 'tv') {
+          if (isTV) {
             const seasonBtn = modal.querySelector('.season-select-btn');
             const seasonDropdown = modal.querySelector('.season-select-dropdown');
             const seasonText = modal.querySelector('.season-select-text');
